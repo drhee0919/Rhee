@@ -1,0 +1,371 @@
+## 1. Numpy(Numerical Python)
+## 수학적 계산을 할때, 수치연산을 할 때 사용된다. 
+## 마치 R의 Vector를 사용하는 것처럼 Numpy를 이용할 수 있다. (Python 모듈 이용)
+## Vector연산과 Matrix 연산을 빠르고 효율적으로 처리할 수 있다. 
+## Pandas의 기본 자료 구조로 쓰인다. 
+## (pandas, Matplotlib의 기본 module 이 Numpy 
+## NumPy module은 ndarray(n-dimensional array)라고 불리는 자료구조를 가짐 
+## (기본적으로는 R의 Vector와 유사 )  - list 는? 
+##R의 vector 자료구조는 같은 데이터타입을 저장하는 자료구조 
+##=> ndarray도 같은 데이터 타입만 저장이 가능(R의 list와 차이점)
+## 차원은  list, 데이터는 vector와 유사한 녀석 
+
+
+## - Numpy module 설치 
+## Numpy는 외부모듈임로 ndarray를 이용하려면 numpy module이 설치되어 있어야 한다. 
+# module 을 설치할 때 conda 명령을 이용해서 설치(anaconda 깔아놓고 쓸 때만)
+# 또는 python은 pip를 이용해서 module 설치 (둘이 저장 위치가 다르다)
+# 작업환경에 적합한 conda 명령을 여기선 예시로 들기로 한다. 
+# 1) anaconda prompt 하나 더 실행 
+# 2)  conda install numpy 명령어 입력 -> proceed 의사 확인에서 yes 
+# (* 설치 완료 후 jupyter를 재실행할 필요는 없다 -> 그대로 쓴다.)  
+import numpy as np  # alias
+
+## - ndarray를 생성하고 data type을 살펴보기
+
+##python list 
+a = [1,2,3,4]
+print("list => {}, type => {}".format(a,type(a)))  # list => [1, 2, 3, 4], type => <class 'list'>
+print("list => {}, type => {}".format(a[0],type(a[0]))) # 원소 1출력                                                    
+                                                        # list => 1, type => <class 'int'>
+# 파이썬은 모든것이 클래스로 이루어져 있다. type은 해당 데이터가 어떤 객체의 클래스인지 알려주는 함수 
+
+## Numpy ndarray 
+b = np.array([1,2,3,4]) #alias 선언했으므로 이하 np로 통칭 
+                        #np가 갖고 있는 array 함수 사용 
+print("ndarray => {}".format(b)) #ndarray => [1 2 3 4]
+                                 #일반적인 list와 비교하여 비슷하게 생겼으나 컴마가 없다.
+    
+print("ndarray => {}".format(type(b))) #ndarray => <class 'numpy.ndarray'>
+
+print("ndarray type => {}".format(type(b)))   #ndarray type => <class 'numpy.ndarray'> 
+print("ndarray dtype => {}".format(b.dtype))  #dtype : 함수아님 속성임, 데이터 타입확인 
+                                              #ndarray dtype => int32
+                                              #32개의 2진수로 표현할 수 있는 수의개수 == 2**32
+                                              # 약 -21억 부터 +21억까지 범위 
+                                              # 부족하면  int64 도 사용가능 -> 천경정도 범위 
+                
+## ndarray를 만드는 가장 간단한 방법 : numpy가 제공하는 array()함수 이용 
+c = np.array([100, "Hello", 3.14])
+print(c)    # ['100' 'Hello' '3.14'] 
+            # 모두 같은 데이터 타입이 되어야 하기 때문에 다 아우를 수 있는 타입(문자열)로 변환 
+print(c.dtype) # <U11 출력
+               # 요소가 유니코드라는 뜻
+print(type(c[0]))  #<class 'numpy.str_'> 
+
+
+
+
+## - 다차원 Numpy array 를 만들어보아요! 
+myList = [(1,2,3),(4,5,6)]  #python list  
+arr = np.array(myList)
+
+print(arr)    # [[1 2 3]
+              #  [4 5 6]]
+#myList= [[1,2,3],[4,5,6]] 와 차이점 : List 는 똑같이 출력되더라도 2차원이라 인식 X, 단지 저리 생겼을 뿐 
+# 1행 2열의 값은 얼마인가요? => 6 
+print(arr[1,2]) # list처럼 arr[1][2] 이 형태로 쓰지 않는다. (일단 이경우 출력결과는 같다) 
+                # 2행 3열의 값을 의미(6)
+                # index의 시작은 0부터 시작한다. 
+    
+## n차원의 ndarray가 어떻게 표현되는지 확인해야 한다. 
+## 기본 데이터타입은 정수일 경우 int32로 사용된다. 
+print(arr.dtype)  #int32 
+arr = np.array(myList, dtype="int64") #단, 그다지 좋지 않은 선언방식 
+arr = np.array(myList, dtype=np.int64)# 이렇게 타입명을 정확히 말해주는 것이 좋다. 
+print(arr.dtype) 
+
+arr = np.array(myList, dtype=np.float64) # 실수형 선언도 가능하다 
+print(arr.dtype)
+
+
+
+## - 차원의 개수, 크기 , axis
+## 1) 차원의 개수를 알려주는 .ndim, .shape
+myList = [1,2,3,4]
+arr = np.array(myList)   #python list를 이용해서 numpy array생성 
+                         #이렇게 numpy array를 생성하면 차원의 개수를 알 수 있다. 
+print(arr.ndim)          #1
+                         #차원의 개수를 알려주는 속성 ndim 
+
+## 차원의 개수와 원소 개수를 동시에 알려주는 속성 
+print(arr.shape) #(4,)
+
+## 2차원의 경우 
+myList = [[1,2,3],[4,5,6]]
+arr =np.array(myList)
+print(arr.shape)#(2, 3) 2행 3열
+
+myList = [[[1,2],[3,4]],[[5,6],[7,8]]]
+arr =np.array(myList)
+print(arr.shape) #(2, 2, 2) 2면 2행 2열 
+
+##정리
+##1차원 -> 열(행이 없고 열만 있는 개념)
+##2차원 -> 행과 열로 표현됨 
+##3차원 -> 면,행,열로 표현됨 ( 면은 경우데 따라 depth라고 함)
+
+## 2)numpy array 차원 제어 
+myList = [1,2,3,4,5,6,7,8,9,10,11,12]
+arr = np.array(myList) #numpy array생성(ndarray)
+#차원의 수와 요소개수를 알아보아요 
+print("ndarray의 차원의 수는 : {}".format(arr.ndim)) #ndarray의 차원의 수는 : 1
+print("ndarray의 shape : {}".format(arr.shape)) #ndarray의 shape : (12,) 
+print("ndarray의 요소개수 : {}".format(arr.size))#ndarray의 요소개수 : 12
+#python의 len함수는 ndarray에 대해 적용하면 1차원의 요소개수를 리턴
+print("ndarray의 len() : {}".format(len(arr))) #ndarray의 len() : 12
+
+#shape을 변경할 수 있다. 
+arr.shape = (2,2,3)
+print(arr)  
+#[[[ 1  2  3]
+#  [ 4  5  6]]
+
+# [[ 7  8  9]
+#  [10 11 12]]]
+## 이렇게 shape을 변경할 수 있는데 
+## arr.shape을 직접 바꾸는 방식은 잘 사용되지 않는다. 
+## 다른 방식이 존재한다 : reshape()함수 이용 
+
+
+
+## - numpy array의 type변경 
+arr = np.array([1.1,3.14,2,44.0,3.99]) #정수와 실수가 섞여있는 nparray
+print("dtype: {}",format(arr.dtype))   #dtype: {} float64
+
+## ndarray 의 데이터 타입을 다른 형식으로 변경할 수 있어요 
+#ex/ 실수를 정수로 변경하기 
+int_arr = arr.astype(np.int32)
+print(int_arr) #실수를 정수로 변환할 때 소수점이하 버림 처리 
+               #[ 1  3  2 44  3]
+print("dtype: {}",format(int_arr.dtype))    #dtype: {} int32
+
+
+
+## numpy array를 생성하는 다양한 방법 
+arr = np.array([1,2,3,4])   #리스트를 이용해서 ndarray를 생성 
+
+## 모든 원소의 값이 0인 ndarray를 원하는 shape으로 생성 (zeros())
+arr = np.zeros((3,4))    #(3,4) shape형태로 원소의 값이 0인 ndarray를 생성 
+print(arr)    #[[0. 0. 0. 0.]
+              # [0. 0. 0. 0.]
+              # [0. 0. 0. 0.]]
+
+## 모든 원소의 값이 1인 ndarray를 원하는 shape으로 생성 (ones())
+arr = np.ones((2,4), dtype=np.int32)  #만들때마다 dtype 명시 가능
+print(arr)    
+              #[[1 1 1 1]
+              # [1 1 1 1]]
+
+## numpy array의 공간만 확보할 수 있다. (empty())
+## 초기화를 하지 않는다. 
+arr = np.empty((5,7))
+print(arr)        #임의의 공간에 들어가서 메모리만 차지함 
+                  #공간만 잡는 것이기에 기존에 쓰다가 버리는 등 초기화가 안된 '쓰레기값'들이 출력이 됨 
+                  #특정 용도로 사용하고 싶다면 미리 비워놓고 초기화 작업이 필요
+        
+##ones나 zeros는 초기화 작업이 추가적으로 진행 (full())
+##array의 크기가 커지면 속도가 저하 (empty를 쓰는 이유)
+arr = np.full((3,4),9,dtype=np.float64)    #임의의 값이 초으로 초기화를 진행 
+print(arr)  
+#[[9. 9. 9. 9.]
+# [9. 9. 9. 9.]
+# [9. 9. 9. 9.]]
+
+arr = np.array([(1,2,3),(4,5,6)])   #2행 3열짜리 ndarray 생성
+print(arr)
+
+# 위에서 설명한 ones, zeros, full, empty와 같은 역할을 하면서 shape이 지정한 array와 같도록 만다는 함수 
+# like계열 함수(여기서는 ones_like)
+arr_like = np.ones_like(arr, dtype=np.float64)
+print(arr_like)
+#[[1. 1. 1.]
+# [1. 1. 1.]]
+
+
+
+## ndarray를 만드는 다양한 방법 중 하나 -arrage()
+## python의 range()와 유사한 기능을 한다. 
+
+arr = np.arange(0,10,2)    #0은 포함, 10은 불포함, 2씩 증가 
+print(arr)                 #[0 2 4 6 8]
+
+arr = np.arange(10)
+print(arr)                 #[0 1 2 3 4 5 6 7 8 9]
+
+arr= np.arange(0.1,5.3)    #0.1부터 시작, 5.3은 불포함, 1씩 증가 
+print(arr)
+
+
+
+
+## ndarray를 만드는 다양한 방법 - linepace 
+## np.linspacen(start.stop,ni)
+## : start부터 stop까지의 범위에서 num 개를 균일한 간격으로 데이터를 생성하고 ndarray로 return 
+
+arr = np.linspace(0,10,12) #0~10사이에 균등한 간격으로 12개를 나눔 
+print(arr)                 #순차증가 : linear하게 올라감 
+arr2 = np.linspace(0,10,20)
+print(arr2)
+
+##눈으로 보기 힘드니 그래프로 볼 수 있다. 
+## char를 그리는 대표적인 package => matplotlib 
+
+## 2. matplotlib
+## : 똑같이 프롬프트에 conda install matplotlib 입력 
+
+import matplotlib.pyplot as plt
+
+arr = np.linspace(0,10,20)
+plt.plot(arr)
+plt.show()
+
+
+
+## Numpy Array(ndarray)
+## 특징, 여러가지 속성들(ndim, shape, .. )
+## ndarray 생성방법
+
+## - 난수를 이용해서 ndarray를 생성하는 방법 
+## :5가지 정도가 존재 (normal, rand, randint, random, +  random.seed)
+
+## np.random.normal() : 난수를 생성해서 ndarray를 만들 수 있다. 
+# => 정규분포 확률밀도에서 난수를 발생시켜요 
+import numpy as np 
+import matplotlib.pyplot as plt
+
+#평균 
+myMean = 50 
+
+# 표준편차
+myStd = 2
+
+arr = np.random.normal(myMean, myStd, (10000)) #shape을 이용
+print(arr) #[47.2436513  52.24158032 46.98108152 ... 48.97582146 51.36896183
+           #50.91168503]
+           #10000개를 다 출력해주진 않음 
+
+plt.hist(arr,bins=100) #구간이 약 100구간인 히스토그램을 그려줌 
+plt.show() #50에 가장 많이 분포한 정규분포 형태 
+
+
+
+
+## 난수를 추출 1
+# [0,1) (0이상 1미만) 구간에서 균둥분포 확률밀도상에서 난수 추출 
+arr = np.random.rand(10000) #1차원(2,3) => 2차원
+# arr = np.random.rand(1000,2,3) #3차원으로 1000개의열, 2개의 행 
+plt.hist(arr, bins=10000)
+plt.show()
+
+
+## 난수를 추출 2
+## 표준정규분포 확률밀도상에서 난수 추출 
+#arr = np.random.randn(1000,2,3) #인자의 개수로 차원을 지정 (shape이 아니다)
+arr = np.random.randn(10000)
+plt.hist(arr,bins=100)
+plt.show
+
+
+## 난수를 추출(정수를 추출)
+## 주어진 범위에서 균등분포 확률밀도상에서 난수 추출 
+arr = np.random.randint(-100,100,(10000,)) #범위와 형태를 지정해줌 
+                                           #많이 뽑으면 많이 뽑을수록 균등분포에 가까워짐 
+plt.hist(arr,bins=100)
+plt.show()
+
+
+
+## 난수를 추출(실수를 추출)
+## [0,1)에서 균등분포 확률밀도상에서 난수 추출 
+arr = np.random.random((10000,)) #rand는 다르게 shape으로 표현해여한다. (이외에는 똑같다 )
+plt.hist(arr,bins=100)
+plt.show()
+
+
+
+## 난수는 랜덤값이기 때문에 실행할 때마다 추출하는 난수가 달라져야 한다. 
+
+## 난수값도 사실은 알고리즘에 의해서 계산되는 값 : 순수한 랜덤이란 없다. 
+## 알고리즘의 초기값을 고정시키면 항상 같은 난수를 얻을 수 있다. => 재현성! 
+
+#arr = np.random.randint(0,10,(5,)) #0부터 10사이, 1차원 5개 
+                                   #정수를 균등분포 추출
+#print(arr) # 계속 결과가  달라짐 
+
+np.random.seed(3)
+arr = np.random.randint(0,10,(5,))
+print(arr)
+
+
+####################즐거운 오늘의 문제#####################
+### 문제 9 
+## 1부터 10까지 자연수를 각각 제곱해서 더하면 1**2 + 2**2 + 3**2 + 4**2 + ... = 385 
+## 1부터 10까지 모두 더한다음 그 결과를 제곱하면 
+## (1+2+3+4+ ... ) ** 2 =3025 
+## 그 차이를 구해보아요 => 3025 - 385 => 2540
+
+## 1부터 100까지 위의 과정을 거치면 결과는? 
+
+myList1 =list() 
+myList2 =list()
+
+for i in range(1,101):
+    myList1.append(i)
+    myList2.append(i*i)
+    
+    total_square = sum(myList1[:]) * sum(myList1[:])
+    square_sum = sum(myList2[:])
+    
+print("답은 %d 입니다."%(total_square-square_sum))
+
+
+###문제 10 
+## 소수를 크기순으로 나열하면 2,3,5,7,11,13,17...
+## 이때, 10001번째 소수는 얼마일까요? 
+def nth_prime_number(n):
+       # 소수 할당할 list 선언
+       prime_list = [2]
+       # 소수인지를 판단할 수열 할당(초기값 3)
+       num = 3
+       # n번째 까지 소수를 생성하기
+       while len(prime_list) < n:
+
+           # 그 이전 소수로 나눠지는가? 
+           for p in prime_list:
+               # 피제수의 나머지가 없다면
+               # 그거슨 소수가 아니야 
+               if num % p == 0:
+                   break
+
+           # 소수라면 prime_list에 더하라 
+           # break조건이 만족되기 전까지 for -> else 루프 
+           else:
+               # 나머지가 있ㅇ면 할당해 
+               prime_list.append(num)
+
+           # 속도향상을 위한 짝수제외 
+           num += 2
+
+       # 리스트 마지막거 출력 
+       return prime_list[-1]
+a = nth_prime_number(10001)
+print("10001번째 소수는 : %d"%(a))
+
+## 추가 : 에라스토테네스의 체(범위내의 소수 환산) 
+## 특징 : 개빠르다 
+def prime_list(n):
+    # 에라토스테네스의 체 초기화: n개 요소에 True 설정(소수로 간주)
+    sieve = [True] * n
+
+    # n의 최대 약수가 sqrt(n) 이하이므로 i=sqrt(n)까지 검사
+    m = int(n ** 0.5)
+    for i in range(2, m + 1):
+        if sieve[i] == True:           # i가 소수인 경우 
+            for j in range(i+i, n, i): # i이후 i의 배수들을 False 판정
+                sieve[j] = False
+
+    # 소수 목록 산출
+    return [i for i in range(2, n) if sieve[i] == True]
+a = prime_list(10000)
+print(a)

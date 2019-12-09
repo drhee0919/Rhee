@@ -1,0 +1,447 @@
+###############26강(11.26)#################
+
+## 상관관계(correlation)
+## 두 대상이 서로 연관성이 있다고 추측되는 관계를 지칭 
+## 상관계수(correlation coefficient) - 통상 피어슨 상관계수를 지칭 
+## :상관계수를 이용해요(다른 상관계수도 존재)
+## 공분산을 각 확률변수의 표준편차의 곱으로 나눠준값 
+## :(등간척도나 비례척도의 데이타에서) 두 변수의 공분산 을 표준 편차 의 곱으로 나눈 값
+## -1~1사이의 값으로 표현되요! (0: 분모 공분산이  -> 서로 연관성이 없다)
+## 양의상관관계의 경우 0.0 ~ 0.3 ~ 0.7 ~ 1.0 로 보통 3등분 한다. (부적상관관계도 마찬가지) 
+## 예시 : 성적 & 자존감 , 온라인 게임 & 폭력성 
+## ※ 상관계수는 두개의 확률변수에 대해서 관련이 있다 없다, 밀접하게 있다, 밀접하지 않다 라고 설명하는 
+## 현재 연관성에 대한 척도지 '인과관계' 를 말해주지 않는다.(이 부분은 회귀분석쪽에 가까움)
+
+# ex1/ 삼성전자와 KOSPI의 상관관게 확인 
+import numpy as np 
+import pandas as pd 
+import json 
+
+file_KOSPI = open("./data/KOSPI.json","r")  #데이터 경로 불러오기("C:/python_DA/data/KOSPI/json")
+# df_KOSPI = pd.DataFrame(json.load(file_KOSPI)) #해당 데이터 로드(DF로) 
+# display(df_KOSPI.head())  #제대로 나오는지 확인 
+
+#종가만 불러오자 
+# close_KOSPI = df_KOSPI["Close"] 
+#이번엔 다른 방법
+series_KOSPI = pd.DataFrame(json.load(file_KOSPI))["Close"]
+
+#삼성전자도 똑같이 해보자
+file_SE = open("./data/SE.json","r") #("C:/python_DA/data/KOSPI/json")
+series_SE = pd.DataFrame(json.load(file_SE))["Close"]
+
+
+##상관계수를 구하기위해서 일단 공분산을 구한 후 각 표준편차의 곱으로 나눠줘야 해요 
+print(np.corrcoef(series_KOSPI,series_SE)) #numpy package
+#[[1.         0.91317306]
+# [0.91317306 1.        ]]
+
+#비교를 위한 부산산업 데이터 추가 
+file_Busan = open("./data/부산산업.json","r")
+series_Busan = pd.DataFrame(json.load(file_Busan))["Close"]
+
+## 3개의 Series를 df로 만들기 
+data = {
+    "KOSPI" : series_KOSPI,
+    "SE" : series_SE,
+    "Busan" : series_Busan
+}
+df = pd.DataFrame(data)
+display(df.corr()) #Pandas package,여러개의 series에 대해서 한방에 산출가능
+#	       KOSPI	      SE	    Busan
+#KOSPI	1.000000	0.913173	-0.576688
+#SE	    0.913173	1.000000	-0.468954
+#Busan	-0.576688	-0.468954	1.000000
+
+
+
+
+
+
+import numpy as np 
+import pandas as pd 
+
+# 중첩리스트를 이용해서 DataFrame을 생성
+data = [[2, np.nan],
+        [7,-3],
+        [np.nan, np.nan],
+        [1,-2]]
+df = pd.DataFrame(data,
+                 columns=["one","two"],
+                 index=["a","b","c","d"])
+display(df)
+#	one	two
+#a	2.0	NaN
+#b	7.0	-3.0
+#c	NaN	NaN
+#d	1.0	-2.0
+
+df.sum(axis=0) #DataFrame, 즉 Pandas에서는 집계함수에 대해 axis를 주지 않으면 default=0으로 잡힌다. 
+               # axis = 0 으로 세팅, NaN을 0으로 간주. 
+               # one    10.0
+               # two    -5.0
+               # dtype: float64
+df.sum(axis=1) #a    2.0
+               #b    4.0
+               #c    0.0
+               #d   -1.0
+               #dtype: float64
+df.loc["b"]    #one    7.0
+               #two   -3.0
+               #Name: b, dtype: float64
+               #행을 들고 와버린다 
+df.mean(axis=0, skipna=False) #연산에결측치(NaN) 포함여부 설정가능 
+                              #평균에서는 NaN처리가 불가, 따라서 포함시의미가 없어짐 
+                              #one   NaN
+                              #two   NaN
+                              #dtype: float64
+df.mean(axis=0, skipna=True)  #NaN을 무시하고 계산했을 때 
+                              #one    3.333333
+                              #two   -2.500000
+                              #dtype: float64
+                    
+##ex1/ 상기 DF에 대하여 "one" col의 결측값은 "one" col의 평균으로 
+##     "two" col의 의 결측값은 "two" col의 최소값으로 대체해보기 
+df = pd.DataFrame(data,
+                 columns=["one","two"],
+                 index=["a","b","c","d"])
+#이런식으로 쓰면 된다. 
+one_avg = df["one"].mean(axis=0,skipna=True)
+print(one_avg) #3.3333333333333335
+two_min = df["two"].min(axis=0)
+print(two_min) #-3.0
+df["one"] = df["one"].fillna(value=one_avg) #.fillna() 결측치를 바꿔주는 함수 
+                                            #대부분 원본이 바뀌지 않는 함수이기 때문에 리턴값을 다시 대입 
+df["two"] = df["two"].fillna(value=two_min) #똑같이 해주기 
+display(df)
+#        one	 two
+#a	2.000000	-3.0
+#b	7.000000	-3.0
+#c	3.333333	-3.0
+#d	1.000000	-2.0
+
+
+
+
+
+
+
+## DataFrame의 함수에 대해서 조금 더 알아보자 (1)
+## 분석용 함수(sum,mean,cov,corr)
+## '정렬'에 대해서 알아보아요! 
+import numpy as np 
+import pandas as pd 
+
+np.random.seed(11)
+# random으로 정수형 난수를발생시킬거예요 
+df = pd.DataFrame(np.random.randint(0,10,(6,4)))
+display(df)
+
+df.columns = ["A","B","C","D"]
+df.index = pd.date_range("20190101", periods=6)
+display(df)
+#           A	B	C	D
+#2019-01-01 8	8	3	7
+#2019-01-02	7	0	4	2
+#2019-01-03	5	2	2	2
+#2019-01-04	1	0	8	4
+#2019-01-05	0	9	6	2
+#2019-01-06	4	1	5	3
+
+# 결과가 날짜 시계열선이 아닌 임의로 섞어보자 
+random_index= np.random.permutation(df.index)
+#입력으로 들어오는 순열 데이터를 랜덤하게 섞어요
+print(random_index)
+
+df.columns = ["A","B","C","D"]
+df.index = pd.date_range("20190101", periods=6)
+display(df)
+
+random_index = np.random.permutation(df.index)
+#입력으로 들어오는 순열 데이터를 랜덤하게 섞어요
+df2 = df.reindex(index=random_index, columns=["B","A","D","C"])
+display(df2)
+#           B	A	D	C
+#2019-01-05	9	0	2	6
+#2019-01-06	1	4	3	5
+#2019-01-03	2	5	2	2
+#2019-01-01	8	8	7	3
+#2019-01-04	0	1	4	8
+#2019-01-02	0	7	2	4
+
+#DF를 섞어봣으니 다시정렬해보자 
+df2.sort_index(axis=0, ascending=True) #오름차순 설정 
+#display(df2.sort_index(axis=1,ascending=False))#내림차순으로 뽑고 싶을땐 이렇게 
+
+# 행 단위로 오름차순 정렬 
+display(df2.sort_values(by="A"))
+#        	B	A	D	C
+#2019-01-03	0	0	2	4
+#2019-01-06	3	1	2	6
+#2019-01-02	7	1	8	2
+#2019-01-04	5	1	7	5
+#2019-01-05	1	4	8	8
+#2019-01-01	0	9	7	1
+
+# 여러개로 정렬의 순서를 지정 가능 
+display(df2.sort_values(by=["A","B"]))
+#        	B	A	D	C
+#2019-01-03	0	0	2	4
+#2019-01-06	3	1	2	6
+#2019-01-04	5	1	7	5
+#2019-01-02	7	1	8	2
+#2019-01-05	1	4	8	8
+#2019-01-01	0	9	7	1
+
+
+
+
+
+
+## DataFrame의 함수에 대해서 조금 더 알아보자 (2)
+## 분석용 함수(sum,mean,cov,corr)
+## 정렬(sort_index(), sort_values())에 대해서 알아보아요
+## unique(), value_counts(), isin() 함수
+
+import numpy as np 
+import pandas as pd 
+
+np.random.seed(1)
+df = pd.DataFrame(np.random.randint(0,10,(6,4))) #1~10 범위로 6행 4열 DF생성
+display(df)
+#   0	1	2	3
+#0	5	8	9	5
+#1	0	0	1	7
+#2	6	9	2	4
+#3	5	2	4	2
+#4	4	7	7	9
+#5	1	7	0	6
+df.columns = ["A","B","C","D"]   #col명 지정
+df.index = pd.date_range("20190101", periods=6) #날짜(오름차순)로 인덱스 설정
+display(df)
+#        	A	B	C	D
+#2019-01-01	5	8	9	5
+#2019-01-02	0	0	1	7
+#2019-01-03	6	9	2	4
+#2019-01-04	5	2	4	2
+#2019-01-05	4	7	7	9
+#2019-01-06	1	7	0	6
+
+##새로운 column을 만들어보아요 
+df["E"] = ["AA","BB","CC","AA","BB","AA"] #list형태로 넣어도, series로 읽힌다 
+                                          # numpy여도 상관없다
+display(df)
+#       	A	B	C	D	E
+#2019-01-01	5	8	9	5	AA
+#2019-01-02	0	0	1	7	BB
+#2019-01-03	6	9	2	4	CC
+#2019-01-04	5	2	4	2	AA
+#2019-01-05	4	7	7	9	BB
+#2019-01-06	1	7	0	6	AA
+
+print(df["E"].unique())      # ndarray로 리턴해줘요! 
+#['AA' 'BB' 'CC']            # 중복값배제 (n종류 있어)
+print(df["E"].value_counts()) #Series로 리턴해요 
+#AA    3
+#BB    2
+#CC    1
+#Name: E, dtype: int64
+print(df["E"].isin(["AA","CC"]))#Boolean Mask가 리턴되요(이런게포함되어 있니 없니)
+#2019-01-01     True
+#2019-01-02    False
+#2019-01-03     True
+#2019-01-04     True
+#2019-01-05    False
+#2019-01-06     True
+#Freq: D, Name: E, dtype: bool
+
+
+
+
+
+
+
+
+## DataFrame의 함수에 대해서 조금 더 알아보자 (3)
+## 분석용 함수(sum,mean,cov,corr)
+## 정렬(sort_index(), sort_values())에 대해서 알아보아요
+## unique(), value_counts(), isin() 함수
+## 람다 식 활용! => 이름이 없는 함수를 의미
+## 긴 코드를만드는 식에는 적합하지 않지만 아주 간단한 역할을 하는 함수(한줄)아주 편하게 사용할 수 있다.
+import numpy as np
+import pandas as pd 
+
+np.random.seed(1)
+df = pd.DataFrame(np.random.randint(0,10,(6,4)))
+df.columns = ["A","B","C","D"]
+df.index = pd.date_range("20190101", periods=6)
+display(df)
+#           A	B	C	D
+#2019-01-01	5	8	9	5
+#2019-01-02	0	0	1	7
+#2019-01-03	6	9	2	4
+#2019-01-04	5	2	4	2
+#2019-01-05	4	7	7	9
+#2019-01-06	1	7	0	6
+
+##컬럼을 하나 만들려고 해요!! 각 행의 '최대값 -최소값'으로 만들어보자 (lambda, apply활용)
+func = lambda x: x.max() - x.min() 
+
+df["최대-최소"] = df.apply(func, axis=1) #apply() : DF 에 특정 수식을 반복적으로 적용하기 위해 쓰는 함수 
+                                        #Series에서 map()에 해당한다. 
+display(df)
+#          A	B	C	D	최대-최소
+#2019-01-01	5	8	9	5	4
+#2019-01-02	0	0	1	7	7
+#2019-01-03	6	9	2	4	7
+#2019-01-04	5	2	4	2	3
+#2019-01-05	4	7	7	9	5
+#2019-01-06	1	7	0	6	#7
+
+
+
+
+
+
+## DataFrame Merge(데이터프레임 결합)
+## inner join, outer join(full), left join, right join 
+import numpy as np
+import pandas as pd 
+
+#결합 대상이 될 DF 두개 만들기 
+data1 = {
+    "학번" : [1,2,3,4],
+    "이름" : ["홍길동","최길동","아이유","김연아"],
+    "학년" : [2,3,3,1]
+}
+data2 = {
+    "학번" : [1,2,4,5],
+    "학과" : ["컴퓨터","미술","철학","사회"],
+    "학점" : [1.3,3.5,4.3,2.3]
+}
+df1 = pd.DataFrame(data1)
+df2 = pd.DataFrame(data2)
+display(df1)
+#학번	이름	학년
+#0	1	홍길동	2
+#1	2	최길동	3
+#2	3	아이유	3
+#3	4	김연아	1
+
+display(df2)
+#	학번	학과	학점
+#0	1	컴퓨터	1.3
+#1	2	미술	3.5
+#2	4	철학	4.3
+#3	5	사회	2.3
+
+#학번을 기준으로 2개를 결합하려면?
+#inner join 
+display(pd.merge(df1,df2, on="학번", how= "inner"))
+#	학번	이름	학년	학과 	  학점
+#0	1	홍길동	 2	 컴퓨터	1.3
+#1	2	최길동	 3	 미술 	3.5
+#2	4	김연아	 1	 철학 	4.3
+#outer join 
+display(pd.merge(df1,df2, on="학번", how = "outer")) #R에서 FUll join 
+#학번	이름	학년	학과	학점
+#0	1	홍길동	2.0	컴퓨터	1.3
+#1	2	최길동	3.0	미술	3.5
+#2	3	아이유	3.0	NaN	NaN
+#3	4	김연아	1.0	철학	4.3
+#4	5	NaN	NaN	사회	2.3
+display(pd.merge(df1,df2, on="학번", how = "left"))
+#	학번	이름	학년	학과	학점
+#0	1	홍길동	2	컴퓨터	1.3
+#1	2	최길동	3	미술	3.5
+#2	3	아이유	3	NaN	NaN
+#3	4	김연아	1	철학	4.3
+display(pd.merge(df1,df2, on="학번", how = "right"))
+#학번	이름	학년	학과	학점
+#0	1	홍길동	2.0	컴퓨터	1.3
+#1	2	최길동	3.0	미술	3.5
+#2	4	김연아	1.0	철학	4.3
+#3	5	NaN	NaN	사회	2.3
+
+#만약 두개의 DF column명이 다르다면?
+data1 = {
+    "학번" : [1,2,3,4],
+    "이름" : ["홍길동","최길동","아이유","김연아"],
+    "학년" : [2,3,3,1]
+}
+data2 = {
+    "학생학번" : [1,2,4,5],
+    "학과" : ["컴퓨터","미술","철학","사회"],
+    "학점" : [1.3,3.5,4.3,2.3]
+}
+
+df1 = pd.DataFrame(data1)
+df2 = pd.DataFrame(data2)
+
+display(pd.merge(df1,df2, 
+                 left_on="학번",
+                right_on="학생학번",
+                how="inner"))
+#	학번	이름	학년	학생학번	학과	학점
+#0	1	홍길동	 2	   1	    컴퓨터	 1.3
+#1	2	최길동	 3	   2	    미술	 3.5
+#2	4	김연아	 1	   4	    철학	 4.3
+
+
+
+
+#인덱스를 기준으로도 결합할 수 있다. 
+df1.index = [1,2,3,4]
+df2.index = [1,2,3,4] ## 학번이 인덱스로 들어가게 된다. 
+display(pd.merge(df1,df2,
+                left_on="학번",
+                right_index=True,
+                how="inner"))
+##	학번	이름	학년	학생학번	학과  학점
+#1	 1	홍길동	  2	     1	    컴퓨터  1.3
+#2	 2	최길동	  3	     2	    미술	  3.5
+#3	 3	아이유	  3	     4	    철학	  4.3
+#4	 4	김연아	  1	     5	    사회	  2.3
+display(pd.merge(df1,df2,
+                left_index=True,
+                right_index=True,
+                how="inner"))
+#	학번	이름	학년	학생학번	학과  학점
+#1	 1	홍길동	  2	     1	    컴퓨터  1.3
+#2	 2	최길동	  3	     2	    미술	  3.5
+#3	 3	아이유	  3	     4	    철학	  4.3
+#4	 4	김연아	  1	     5	    사회	  2.3
+
+
+
+
+
+
+
+import numpy as np
+import pandas as pd 
+
+s1 = pd.Series([0,1], index=["a","c"])
+print(s1)
+#a    0
+#c    1
+#dtype: int64
+s2 = pd.Series([4,3,2], index=["b","c","e"])
+print(s2)
+#b    4
+#c    3
+#e    2
+#dtype: int64
+print(pd.concat([s1,s2], axis = 0))  #Series연결 
+#a    0
+#c    1
+#b    4
+#c    3
+#e    2
+#dtype: int64
+display(pd.concat([s1,s2], axis =1, sort=True))#Series를 연결하여 DF로 만들 수 있다. 
+#	0	1
+#a	0.0	NaN
+#b	NaN	4.0
+#c	1.0	3.0
+#e	NaN	2.0

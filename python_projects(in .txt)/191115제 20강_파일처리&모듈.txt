@@ -1,0 +1,314 @@
+## 1. python의 기본 파일처리 
+## 먼저 file handlie을 획득해야 한다. (일단은 파일을 오픈해야 한다.)
+## 용도는 '읽기용도'와 '쓰기용도'가 있다.
+## 필요한 파일을 python_DA 폴더에 옮겨놓고 호출한다
+file1 = open("student_score.txt","r")  #읽기용도로 부른다고 선언
+file2 = open("backup.txt","w") #쓰기용도로 부른다고 선언 
+
+## student_score 파일에서 한줄씩 읽어와서 output console에 출력하고 해당내용을 backup file에 저장 
+## →파일의 내용을 다 읽을때 까지 반복(데이터가 몇줄인지 모르니 while 문 사용)
+## 더 읽을 내용이 없을때까지 읽고(while True) 탈출해라(break)
+#while True:
+#    line = file1.readline()
+#    print(line)
+#    if not line: #라인이 빈 문자열이라면 {} == False
+#        break;   #if는 참을 조건으로 거므로 역이용 
+        
+## 정상적으로 실행된다면 한줄식 떠 있는 것을 확인 가능 
+## 눈에 보이지 않는 개행문자가 있기때문(\n)
+##홍길동,18,7,19(\n)
+##최길동,58,70,15(\n)
+##아이유,92,94,99(\n)    이런식으로 
+##python의 print는 기본적으로 출력시 한 줄 띄워줌, 결국 한줄띄기의 중복(두줄띄게됨) 
+## 두줄띄기 실으면 출력간 end설정 
+while True:
+    line = file1.readline()
+    print(line, end="")     
+    if not line: 
+        break;
+    file2.write(line) #Python_DA폴더에 내용이 빈 backup.txt 확인. 파일처리가 안끝나면 저장안됨 
+    
+file1.close()
+file2.close() #파일처리의 기본, 오픈했으면 클로즈를 잡아주기(모든 리소스는 사용하면 끝내야함)
+
+##########처리 결과 
+홍길동,18,7,19
+최길동,58,70,15
+아이유,92,94,99
+김연아,17,20,22
+이선희,76,25,14
+강감찬,90,19,71
+신사임당,31,23,16
+
+
+
+
+###############################(연습문제 이어서)###
+
+### 문제 8.
+##
+## student_score.txt의 내용을 읽어서 학생 성적에 대한 전체 평균을 구하고 성적순으로 출력하세요! 
+## 출력형식 : 이름, 성적평균, 등수 
+           
+data = open('student_score.txt', 'r')
+
+contents=[]
+
+while True:
+    line = data.readline()
+    line_to_data = line.split(",")
+    if not line : 
+        break;
+    contents.append(line_to_data)
+
+gradeList=[]
+for i in range(len(contents)):
+    total = 0 
+    for j in range(len(contents[i])-1,0,-1): #리스트 contents의 맨뒤에서부터 역순으로 맨앞까지 
+        total = total + int(contents[i][j])
+    avg = total / len(contents[i])
+    
+    contents[i].append(avg)
+    gradeList.append(avg)
+contents.sort(key = lambda element : element[4], reverse =True)
+
+for i in range (len(contents)):
+    contents[i].append(str(i+1) + "등")
+print(contents)
+
+#########처리결과 
+[['아이유', '92', '94', '99\n', 71.25, '1등'], ['강감찬', '90', '19', '71\n', 45.0, '2등'], ['최길동', '58', '70', '15\n', 35.75, '3등'], ['이선희', '76', '25', '14\n', 28.75, '4등'], ['신사임당', '31', '23', '16', 17.5, '5등'], ['김연아', '17', '20', '22\n', 14.75, '6등'], ['홍길동', '18', '7', '19\n', 11.0, '7등']]
+
+
+
+
+
+
+
+### §특별예제§
+### R_Lecture 11강 때 사용했던 mpg데이터를 활용하여 동일한 예제를 풀어보자
+
+# R에서 추출한 mpg파일 
+
+mpg = open('mpg.txt', 'r')
+
+contexts=[]
+
+while True:
+    line = mpg.readline()
+    line_to_data = line.split(",")
+    if not line : 
+        break;
+    contexts.append(line_to_data)
+
+
+
+##ex1/ mpg에서 2008년도에 생산된 차량이 몇개 있는지 추출
+
+##ex2/ 모든 차량에 대해 평균 도시연비보다 도시연비가 높은 차량의 model명을 출력하세요 
+
+##ex3/ 고속도로 연비가 상위 75% 이상인 차량을 제조 하는 제조사는 몇개인지 추출하세요 
+
+##ex4/ 오토 차량 중 배기량이 2500cc이상인 차량의 수는 몇개인가?  hint : 문자열 처리 선수 필요 
+ 
+##ex5/ 상기ex2에 대해서 모델명을 오름차순으로 정렬하세요  
+
+##ex6/ 도시연비와 고속도로 연비를 합쳐서 평균 연비 column 작성 
+# mutate 함수 미사용(base기능으로만)
+
+##ex7/ model명이 a4이고 배기량이 2000c 이상인 차들에 대해 평균 연비를 계산하시오(전체 평균 연비 계산). 
+
+##ex8/ 제조사별 그룹을 지어 평균 연비 나타내기 
+
+#########이하 추가 연습문제############################
+#Q1. displ(배기량)이 4 이하인 자동차와 5 이상인 자동차 중 어떤 자동차의 hwy(고속도로 연비)가 평균적으로 더 높은지 확인하세요.
+#Q2. 자동차 제조 회사에 따라 도시 연비가 다른지 알아보려고 한다. "audi"와 "toyota" 중 어느 manufacturer(제조회사)의 cty(도시 연비)가 평균적으로 더 높은지 확인하세요.
+#Q3. "chevrolet", "ford", "honda" 자동차의 고속도로 연비 평균을 알아보려고 한다. 이 회사들의 데이터를 추출한 후 hwy(고속도로 연비) 전체 평균을 구하세요.
+#Q4. "audi"에서 생산한 자동차 중에 어떤 자동차 모델의 hwy(고속도로 연비)가 높은지 알아보려고 한다. "audi"에서 생산한 자동차 중 hwy가 1~5위에 해당하는 자동차의 데이터를 출력하세요.
+#Q5. mpg 데이터는 연비를 나타내는 변수가 2개입니다. 두 변수를 각각 활용하는 대신 하나의 통합 연비 변수를 만들어 사용하려 합니다. 평균 연비 변수는 두 연비(고속도로와 도시)의 평균을 이용합니다. 회사별로 "suv" 자동차의 평균 연비를 구한후 내림차순으로 정렬한 후 1~5위까지 데이터를 출력하세요.
+#Q6. mpg 데이터의 class는 "suv", "compact" 등 자동차의 특징에 따라 일곱 종류로 분류한 변수입니다. 어떤 차종의 도시 연비가 높은지 비교하려 합니다. class별 cty 평균을 구하고 cty 평균이 높은 순으로 정렬해 출력하세요.
+#Q7. 어떤 회사 자동차의 hwy(고속도로 연비)가 가장 높은지 알아보려 합니다. hwy(고속도로 연비) 평균이 가장 높은 회사 세 곳을 출력하세요.
+#Q8. 어떤 회사에서 "compact" 차종을 가장 많이 생산하는지 알아보려고 합니다. 각 회사별 "compact" 차종 수를 내림차순으로 정렬해 출력하세요
+
+
+
+
+
+
+
+## 2.module 
+##Python은 module이란 걸 사용한다. 
+##하나의 python 파일이라 할 수 있다. => 변수, 함수, class 에 관한 정리들이 모여있는 file 
+##모든 python코드들은 모듈이 될 수 있다. 상기조건이 충족되고, 재사용의 목적이 있다면! 
+##=> module은 다른 python 프로그램에서 불러와 사용할 수 있는 python file을 지칭 
+
+##우리가 생성한 모듈을 어디에다가 저장해야 할까? (어디에서 불러올까)
+import sys  #sys라는 모듈을 불러와서 사용할 거라는 뜻 
+sys.path.append("C:/python_Lib") #list에 값을 할당할때 쓰는 append 즉, sys.path는 list 
+
+ ## 확장자 ".py" 형태의 파일을 생성하고 불러온다. => module1.py라는 파일 작성 후 
+ ## C드라이브 밑에 python_Lib라는 파일 생성 하고 거기에 넣어줌 
+    
+    
+##환경변수 PYTHONPATH 라는 걸 만들어서 여기에 module을 넣어놓으려면 프로그램 어디에서나 사용할 수 있다. 
+## 내 컴퓨터-우클릭 - 시스템 설정 - 환경변수에 경로 추가 변수이름 : PYTHONPATH, 변수 값 : C:\Python_DA\python_Lib
+
+
+## - module 사용해보기 
+## module을 사용하는 형식은 import 모듈명 (확장자는 적지않음)
+import module1
+
+print(module1.module_PI) #생성한 module1의 변수사용(python_Lib에 저장된)
+print(module1.mySum(10,20)) #생성한 module1 의 함수 사용 
+
+##from 모듈이름 import 모듈함수(변수, 클래스) 
+## 특정 변수 및 클래스 호출시 이렇게도(주로)
+from module1 import module_PI
+from module1 import *   #다 불러온다. 
+
+
+
+## 3. Package 
+## "." 기호를 이용해서 module을 계층적으로 관리
+## package는 물리적으로 표현할 경우 => 폴더로 표현 
+## A.B 라고 할때 A는 package, B는 module 
+
+import myPackage.module1 #python_lib 폴더에 있는 mypackage 폴더 안에 있는 module1 
+print(myPackage.module1.module_PI) #경로를 다 써 주어야 한다. 
+#또는 
+from myPackage import module1 #아까 모듈에서 함수 받아오듯이 패키지에서 모듈받아오는 것처럼 표현 
+print(module1.module_PI)   #경로상에 패키지를 쓸 필요가 없다. 
+
+#응용하면 
+from myPackage.module1 import *
+print(module_PI)
+
+import myPackage.module1 import mySum
+print(mySum(10,20))
+
+
+#########출력결과
+3.141592
+30
+
+
+
+
+###############################(연습문제 이어서)###
+
+### 문제 8.(다시풀기 => 모듈화 이용)
+## student_score.txt의 내용을 읽어서 학생 성적에 대한 전체 평균을 구하고 성적순으로 출력하세요! 
+## 출력형식 : 이름, 성적평균, 등수
+
+|ipynb코드|
+import sys
+sys.path.append("C:\Python_DA\python_Lib")
+import student_score as ss
+
+result = list()  #학생객체들이 모여있는 리스트 
+studentFile = open("student_score.txt","r") 
+
+
+while True:
+    stu = studentFile.readline()
+    if stu == "":
+        break;
+    stu_list = stu.split(",") # ,를 기준으로 분류하여 리스트로 리턴 
+                              # ['홍길동','18','7','19']
+
+    
+    result.append(ss.Student(stu_list[0],stu_list[1],stu_list[2],stu_list[3]))
+
+
+## 정상적으로 데이터가 생성되었는지 확인 
+for s in result: 
+    s.print_student()
+
+
+
+
+|student_score.py|
+##class 정의 
+class Student: #19강 05_file processing 참조 
+    # class variable 
+    # 딱히 공유하는게 없으니깐 건너뛰자 
+    
+    # 생성자(consturctor)
+    def __init__(self,n,k,e,m):
+        self.sName = n
+        self.sKor= int(k)
+        self.sEng = int(e)
+        self.sMath = int(m)
+        self.sAvg = self.calcul_avg()  #하단의 매소드 참조 
+                                       #등수는 저장안함: 정렬에서 쉽게 할 수 있다. 
+        
+    # method 
+    def calcul_avg(self):
+        return (self.sKor + self.sEng + self.sMath) /3 
+    
+    def print_student(self):
+        print("학생의 이름은 : {}, 평균은 : {:.2f}".format(self.sName,self.sAvg))
+##########출력 결과 ####
+학생의 이름은 : 홍길동, 평균은 : 14.67
+학생의 이름은 : 최길동, 평균은 : 47.67
+학생의 이름은 : 아이유, 평균은 : 95.00
+학생의 이름은 : 김연아, 평균은 : 19.67
+학생의 이름은 : 이선희, 평균은 : 38.33
+학생의 이름은 : 강감찬, 평균은 : 60.00
+학생의 이름은 : 신사임당, 평균은 : 23.33
+
+
+
+
+##'문제8' 이어서
+#학생객체가 가지고 있는 sAvg를 이용해서 객체를 리스트안에서 정렬 
+#외부 module을 이용해서 객체를 리스트안에서 정렬 
+
+
+|ipynb코드|
+import sys
+sys.path.append("C:\Python_DA\python_Lib") #경로 추적 
+import student_score as ss
+import operator #리스트 안의 정렬을 쉽게 하기 위해서 선언 
+
+result = list()  #학생객체들이 모여있는 리스트 
+studentFile = open("student_score.txt","r") 
+
+
+while True:
+    stu = studentFile.readline()
+    if stu == "":
+        break;
+    stu_list = stu.split(",") # ,를 기준으로 분류하여 리스트로 리턴 
+                              # ['홍길동','18','7','19']
+
+    
+    result.append(ss.Student(stu_list[0],stu_list[1],stu_list[2],stu_list[3]))
+
+
+## 정상적으로 데이터가 생성되었는지 확인 
+for s in result: 
+    s.print_student()
+    
+## 결과데이터 정렬하기 
+sorted_result = sorted(result,key=operator.attrgetter("sAvg")) #attrgetter : property의 값을 추출 
+
+## 정렬된 데이터 확인하기 
+for s in sorted_result:
+    s.print_student()
+
+##########출력 결과 ####
+학생의 이름은 : 홍길동, 평균은 : 14.67
+학생의 이름은 : 최길동, 평균은 : 47.67
+학생의 이름은 : 아이유, 평균은 : 95.00
+학생의 이름은 : 김연아, 평균은 : 19.67
+학생의 이름은 : 이선희, 평균은 : 38.33
+학생의 이름은 : 강감찬, 평균은 : 60.00
+학생의 이름은 : 신사임당, 평균은 : 23.33
+학생의 이름은 : 홍길동, 평균은 : 14.67
+학생의 이름은 : 김연아, 평균은 : 19.67
+학생의 이름은 : 신사임당, 평균은 : 23.33
+학생의 이름은 : 이선희, 평균은 : 38.33
+학생의 이름은 : 최길동, 평균은 : 47.67
+학생의 이름은 : 강감찬, 평균은 : 60.00
+학생의 이름은 : 아이유, 평균은 : 95.00

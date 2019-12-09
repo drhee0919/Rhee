@@ -1,0 +1,319 @@
+<11.13 제 18강 - >
+## Python 내용 복습하기 
+## 1. 환경설정 
+##    - PyCharm IDE를 이용해서 개발 
+##     여러명이 같은 파일, 같은 프로젝트를 공유하면서 개발시 유리 
+##     단, Interactive한 개발은 힘들다. (셀간 데이터가 같은 것이 아님) 장점이자 단점. <=> Jupyter(데이터가 이어진다) 
+##     일반적인 데이터 분석보다는 Web개발이나 다른 application작성에 일반적으로 사용이 된다. 
+##
+##    - Jupyter Notebook 
+##      Interactive한 개발이 가능해서 데이터 분석에 대한 학습이나 실제 분석작업을 많이 한다. 
+##      공동작업이 아니라 혼자서 개발하는 것에 기반을 두고 있음(공동작업시 불편함) 
+##      아나콘다나 스파이더 등 개발환경 구성간 필요
+##
+## 2. jupyter notebook 사용방법 
+##    - Cell 생성, cell안의 코드 실행방법 
+##    - Cell 삭제방법 
+##    - 무한루프가 되면 실행 취소하는 법 (안될시엔 브라우저 재실행) 
+##    - 전체셀을 한번에 다 실행시키는 법(Kernel - Restart & run all) 
+##    - 기타 기본적인 툴 사용법 
+##
+## 3. Data type (python built in types) 
+##    - Python에 내장된 기본 타입들 
+##    - Numeric( int, float, complex) → numeric이란 타입이 따로 있는 건 아니고 다음 타입들을 통칭 
+##    - Text Sequence Type( str ) → 길게 설명했음로 참조 
+##    - Sequence Type( list, tuple, range ) → 데이터 타입보다는 자료구조(data structure)   
+##    - Mapping Type ( dict ) → dict하나 있음, json구조를 떠올려 보면 됨(key로 접근) 
+##    - Bool Type ( bool ) → 논리 타입 		<= 이번 시간에 배울 거 
+
+-----------------------------------------------------------------------------------------------------------------------------------
+- Bool Type 
+: True, False 두 가지 값이 존재한다. 
+#   and라는 논리연산자가 존재한다. or 역시 논리연산자로 존재한다. 
+#  ※ &, | 는 python에서 비교연산자, bitwise 연산을 거친다. (and, or 과 구분)
+#     python에서 숫자 0은 False로 간주, 0이 아닌 모든 숫자 True 
+#     python은 다음의 경우를 False로 간주  :  숫자 0, 빈 문자열(""), 빈 리스트( [] ), 빈 튜플( () ), 비어있는 dict( {} ), None
+result = True or False
+print(result)     #True 
+result = True | False
+print(result)     #True
+result = True and False
+print(result)     #False 
+result = True & False
+print(result)     #False 
+
+print(bool(1000)) #True
+print(bool(0))    #False
+print(bool(""))   #False, 빈 문자열, double quotation안에 무어라도 있으면 TRUE 
+print(bool([1]))  #True
+print(bool(()))   #False
+print(bool((1,2))) #TRUE
+print(bool({}))    #False
+print(bool(None)) #False
+
+print(int(False))   #0 
+print(int(True))    #1 
+
+True & False # 1 & 0 → 0001 & 0000 → 0000 FALSE
+              # 우리가 아는 논리연산이 아니라 사실 다음과 같은 과정을 거침
+              #  Bitwise연산과 논리연산과 동일시하면 오류가 나는 경우도 있음 
+        
+########################################################
+
+# - python 의 남은 built-in type
+#  1) Set type( set )
+# 어떻게 생겼나요? → {}
+# {} : 기본적으로 dict, dict는 {}안에 key와 value로 구성 되지만 set은 {} 안에 요소만 들어간다. 
+a = {"name" : "홍길동", "age" : 20 }  #dict
+a = {1,2,3} #dict 표현인데 key가 없다. 
+a = set()
+a = set([1,2,3,4,5])
+# set이라는 자료구조는 기본적으로 순서가 없다. 중복을 허용하지 않는 저장장소 
+print(type(a))   #<class 'set'>
+
+# ex/ 다음 set구문의 출력결과를 예측해보자 
+a= set([1,2,3,4,1,2,3,1,2,3])
+print(a)  # {1, 2, 3, 4}
+a = set("Hello")
+print(a)  #{'e', 'H', 'l', 'o'}
+
+# set의 연산 
+a = {1,2,3,4}  #set의 literal 선언
+b = {3,4,5,6}
+
+# set → 집합( 집합연산, 교집합, 합집합, 차집합 )
+a & b    # & : 만약 set에 적용하면 교집합 (intersection)
+print(a.intersection(b))  #{3, 4}
+print(a|b)     # | : 만약 set에 적용하면 합집합(union), {1, 2, 3, 4, 5, 6}
+print(a.union(b))  #또는 이렇게, {1, 2, 3, 4, 5, 6}
+print(a - b) # - : 만약 set에 적용하면 차집합(difference) {1, 2}
+print(a.difference(b)) # 또는 이렇게, {1, 2}
+
+mySet = {1,2,3,4,5}
+mySet.add(7)    #add()는 set에 원하는 요소 1개를 추가  
+print(mySet)    #{1, 2, 3, 4, 5, 7} 
+mySet.update([0,11,12]) #여러개를 set에 추가 
+print(mySet)            #{0, 1, 2, 3, 4, 5, 7, 11, 12}
+mySet.remove(1)  #삭제 
+print(mySet)     #{0, 2, 3, 4, 5, 7, 11, 12}
+
+########################################################
+
+### [ 연습문제 이어서 ]
+### 문제 4
+## 로또 프로그램을 작성 
+## 5천원으로 로또복권 5장을 자동으로 구매 
+## 이번주 로또 당첨번호를 생성하여 구매한 로또가 당첨이 되었는지를 확인
+## 쉬운버전부터 : 보너스 번호가 없다
+## 1등 : 6개 , 2등: 5게, 3등 : 4개, 4등: 3개
+## 5장의 로또번호가 몇 등에 당첨되었는지 출력 ! 
+## 랜덤번호 추출은 다음 코드를 사용import random 
+import random
+
+#a= random.randint(1,10)   #1이상 10이하의 정수형 난수 생성 
+#print(a)                  #로또의 경우는 1~45의 범위가 필요 
+
+## 1. 일단 한장 해보기 
+
+number1  = random.randint (1,  45)
+number2  = random.randint (1,  45)
+number3  = random.randint (1,  45)
+number4  = random.randint (1,  45)
+number5  = random.randint (1,  45)
+number6  = random.randint (1,  45)
+
+myPick = set([number1, number2, number3, number4, number5, number6])
+jackpot = set([9, 18, 32, 33, 37, 44])
+
+
+
+if  len(myPick&jackpot) == 6:
+    print("1등당첨!!!")
+elif len(myPick&jackpot) == 5:
+    print("2등당첨!!")
+elif len(myPick&jackpot) == 4:
+    print("3등당첨!!")
+elif len(myPick&jackpot) == 3:
+    print("4등당첨!")
+else:
+    print("응 꽝이야")
+
+
+##
+## 2. 5장 뽑아보기 
+
+lotto = list()
+# 로또 다섯 장 사서 자동 돌리기 
+for i in range(1,6):
+    exp = set()
+    while len(exp) < 6:
+        
+        exp.add(random.randint(1,45))
+        
+    #print(exp) 주석처리 
+    
+    lotto.append(exp)
+
+# ○○○주차 로또 번호는? 
+for i in range(1,2):
+    jackpot = set()
+    while len(jackpot) < 6:
+        jackpot.add(random.randint(1,45))
+    
+    print(jackpot)
+    print(lotto)
+
+for i in range(0,5):
+    if len(lotto[i]&jackpot) == 6:
+        print("1등 당첨!!!")
+    elif len(lotto[i]&jackpot) ==5:
+        print("2등 당첨!!")
+    elif len(lotto[i]&jackpot) ==4:
+        print("3등 당첨!")
+    elif len(lotto[i]&jackpot) ==3:
+        print("4등 당첨")
+    else:
+        print("응 또사")
+
+##
+## 3. 원하는 만큼 로또 사보기(여러장 입력받기)
+import random, string 
+
+cn = 'y'
+
+print("몇장 살건가요? ")
+
+while(cn == 'y'):
+    tickets = input("tickets: ")
+    
+    if(tickets.isdigit() == True):
+        for i in range(1,int(tickets)):
+            lotto = random.sample(range(1,45),6) #random sample, 랜덤한 문자열을 출력가능 
+            lotto.sort()
+            print(lotto)
+            cn = 'n' 
+            
+    else:
+        print("숫자를 입력하세요")
+        continue #숫자 입력할 때까지 묻는다. 
+        
+    cn = input("다시 구매(y/n):" )
+    while(cn != 'y' and cn != 'n' and cn !='Y' and cn !='N'):
+        print("y나 n만 입력하세요")
+        cn = input("다시 구매(y/n):" )
+        
+
+#####################################
+# 오리지날 버전 : 보너스번호 까지 있는로또 만들기 
+#이하 참고 코드 
+from random import *
+import time, os
+
+class lotto:
+    cnt = 0
+    def __init__(self):
+        lotto.cnt += 1
+        self.mylotto = []
+        for i in range(int(input('로또를 몇개 구매하시겠습니까?: '))):
+            self.mylotto.append(self.__lotto_pop()[:6])
+        print('\n- {}회 차 로또 구매 내역 -'.format(lotto.cnt))
+        for i in self.mylotto:
+            print('\t{:2} {:2} {:2} {:2} {:2} {:2}'.format(*i))
+        print()
+
+    def lucky(self):
+        self.lucky_number = self.__lotto_pop()
+        print('- {}회 차 로또 당첨 번호 -'.format(lotto.cnt))
+        print('\t{:2} {:2} {:2} {:2} {:2} {:2}, 보너스 번호: {:2}'.format(*self.lucky_number[:6],self.lucky_number[-1]))
+        self.__match_lucky()
+
+    def __match_lucky(self):
+        print('\n- {}회 차 로또 당첨 확인 -'.format(lotto.cnt))
+        self.rank = [0,0,0,0,0]
+
+        for i in self.mylotto:
+            num_match = len(set(i)&set(self.lucky_number[:6]))
+
+            if num_match == 6:
+                print('\t{:2} {:2} {:2} {:2} {:2} {:2}'.format(*i[:6]),end=' >>> ')
+                print('1등 당첨 축하드립니다. 일생의 운을 다 쓰셨습니다.')
+                self.rank[0] += 1
+            elif num_match == 5 and self.lucky_number[-1] in i:
+                print('\t{:2} {:2} {:2} {:2} {:2} {:2}'.format(*i[:6]),end=' >>> ')
+                print('2등 당첨 축하드립니다. 콩라인에 오신걸 환영합니다.')
+                self.rank[1] += 1
+            elif num_match >= 3:
+                print('\t{:2} {:2} {:2} {:2} {:2} {:2}'.format(*i[:6]),end=' >>> ')
+                print('{}등 당첨 축하드립니다.'.format(8 - num_match))
+                self.rank[8-num_match-1] += 1
+        print()
+        if self.rank == [0]*5: print('\t모두 꽝입니다. 호갱님')
+        for i in range(5):
+            if self.rank[i] != 0: print('\t{}등 당첨: {}개'.format(i+1,self.rank[i]))
+
+    @staticmethod
+    def __lotto_pop():
+        return sample(range(1,46),7)
+
+if __name__ == '__main__':
+    while 1:
+        os.system('cls')
+
+        buy_lotto = lotto()
+        for i in reversed(range(3)):
+            print('.'*(i+1),'{}'.format(i+1))
+            time.sleep(1)
+        print()
+        buy_lotto.lucky()
+        if input('\n계속하시겠습니까? y/n: ') == 'n': break
+##############################################
+
+%%time 
+#※ magic function: jupyter지원 기능, 해당 셀을 돌리는데 시간이 얼마나 걸리나 출력 
+
+##추가 문제 
+##로또 1등 당첨되기 위해서 평균적으로(얼마)몇장 사야하나 
+import random 
+winningNumber = set()
+while len(winningNumber) < 6:
+    winningNumber.add(random.randint(1,45))
+    
+nCount = 0
+while True:
+    myLotto=set()
+    while len(myLotto) < 6:
+        myLotto.add(random.randint(1,45))
+    if len(winningNumber & myLotto) == 6:
+        break   #인접한 가장 가까운 loop를 탈출 
+    else:
+        nCount += 1
+print("{}장 사야 1등에 당첨되요!".format(nCount))
+print("비용은 : {:,}".format(nCount*1000))
+mean_Count = nCount 
+
+
+
+### 문제 5번 
+## 어떤 수를 소수의 곱으로만 나타내는 것을 소인수 분해라고 함 
+## 이 소수들을 그 수의 소인수라고 지칭 
+
+## 예로 13195의 소인수는 5,7,13,29가 될 것이다. 
+## 600851475143
+
+import random, string
+
+Number = int(input(" 숫자를 입력하세요: "))
+myList = []
+for i in range(2, Number+1):  #잿수 선언 
+    if(Number % i == 0):      # 나누어 떨어지는 숫자 조건 설정 
+        im_Prime = 1 
+        for j in range(2, (i//2 + 1)):
+            if(i % j == 0):   # 언제까지? : 더 안 나누어 질때까지 
+                im_Prime = 0  # 조건 막고 끝내기 
+                break         
+            
+        if (im_Prime == 1):
+            print("%d 는 %d 의 소인수입니다" %(i, Number))
+            myList.append(i)
+        
+print("최소공배수 중 가장 큰 값은 :", max(myList))     
