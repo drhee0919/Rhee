@@ -1,0 +1,62 @@
+# Tensorflow 
+# 다른 package, module에 비해서 살짝 특이한 형태의 library
+# 다른 package들이 특정 목적을 위해서 함수를 쓴다고 한다면 tensorflow는 전체적인 그래프를 만들기 위헤
+# 나중에 일괄적으로 수행될 node를 생성함 
+#Tensorflow의 3가지 개념 
+# 1. Node : 수학적인 연산을 담당, 데이터의 입출력을 담당 
+# 2. edge : 노드와 노드를 연셜시키고 잇는 통로 
+# 3. Tensor : 다차원 배열 형태의 동적 데이터 (텐서가 흐른다 )
+# 함수를 만들어놓고 나중에 실행을누루면 한번에 tensorflow를 수행함. 
+import tensorflow as tf 
+
+node1 = tf.constant("Hello World!!") #constant:상수 node를 만드는 함수
+print(node1) #안찍히고 tensor가 표현된다. (tensor 자체를 출력)
+
+#tensorflow로 만든 graph를 실행시키기 위해서는 runner가 필요 
+#session이라고 불리는 runner를 생성해요 
+sess = tf.Session()
+sess.run(node1) #b'Hello World!!'
+                #b는 byte string의 약자 
+    
+print(sess.run(node1).decode()) #Hello World!!
+
+
+## 2개의 값을 더하는 tensorflow graph를 생성하고 실행시켜서 값을구해보자 
+import tensorflow as tf 
+
+node1 = tf.constant(10, dtype=tf.float32) #상수값을 가지는 숫자를 생성
+node2 = tf.constant(20, dtype=tf.float32)
+node3 = node1 + node2
+
+
+#그래프를 실행시켜보자 
+sess = tf.Session()
+print(sess.run(node1)) #10
+
+#한꺼번에 여러개를실행하고자 한다면? 
+print(sess.run([node1,node2,node3])) #실행시키는 시점에 각 노드의 값이 정해져 있다.
+                                        #constant(상수이기 때문에)
+
+#상수가 아닌 출력시 계산 과정을 연산하고 싶다면? 
+node1 = tf.placeholder(dtype=tf.float32)
+node2 = tf.placeholder(dtype=tf.float32)
+
+node3 = node1 + node2 
+sess = tf.Session() 
+result = sess.run(node3, 
+                  feed_dict={node1: 10, 
+                             node2: 30})
+
+print("덧셈결과 : {}" .format(result))
+
+
+#실행할때마다 입력값을 직접 입력 받고 싶다면 
+node1 = tf.placeholder(dtype=tf.float32)
+node2 = tf.placeholder(dtype=tf.float32)
+
+node3 = node1 + node2 
+sess = tf.Session() 
+result = sess.run(node3, 
+                  feed_dict={node1: input(), 
+                             node2: input()})      
+print("덧셈결과 : {}" .format(result))

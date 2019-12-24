@@ -1,0 +1,73 @@
+'''
+머신러닝 
+
+explicit program으로 해결할 수 없는 문제를 해결하기 위한 프로그래밍 방식(방법)
+
+머신러닝의 범주 
+1. 지도학습: 학습데이터의 label이 붙어있는 형태  
+    - linear regression
+      : 학습데이터가 주어진다.(아무데이터나 지도학습X)
+        경향성을 가지는 데이터를 이용해야 한다. 
+        x = 1,2,3    y = 1,2,3
+        하나의 가설을 설정하고 그 가설을 완성해 나가는 과정(직선이 될수도, 2차함수가 될수도, 면, 입체도 가능)
+        통상 해당 학습 데이터를 가장 잘 표현할 수 있는 직선을 찾는 형태로 나타냄  
+        가설 : H(x) = Wx + b (W와 b를 찾아보아요)
+        가장 적합한 가설(직선)을 찾기위해 '비용함수(cost function)'
+        => 최소제곱법이라는 방법으로 데이터와 가설간의 차이를 계산 
+        비용함수가 최소가 되는 W와 b의 값을 찾는 게 가장 적합한 가설을 찾는 방법이 된다. 
+    - logistic regression 
+    - multinomial classification 
+    
+2. 비지도학습
+
+3. 강화학습
+'''
+
+## linear regression을 tensorflow를 이용해서 구현해보자 
+## y=x의 구조를 띄는 데이터가 있다고 가정 
+
+# 1. 필요한 module을 import 
+import tensorflow as tf 
+
+# 2. training data set (학습데이터 설정하기)
+x_data = [1,2,3]
+y_data = [1,2,3]
+
+# 3. placeholder(tensorflow그래프에 입력을 주기위한 파라미터 기능)
+x = tf.placeholder(dtype=tf.float32)
+y = tf.placeholder(dtype=tf.float32)
+
+# 4. Weight, bias 범위 지정하기
+W = tf.Variable(tf.random_normal([1], name="weight"))
+b = tf.Variable(tf.random_normal([1], name="bias"))
+
+# 5. 가설을 하나 지정해주기 
+H = W * x + b
+
+# 6. 비용함수 지정해주기 (cost function, loss function)
+cost = tf.reduce_mean(tf.square(H - y))
+
+# 7. train node를 생성하기 (어떻게 학습할 것인가)
+optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
+train = optimizer.minimize(cost) #비용을 최소화하는 것이 곧 train(학습)
+
+# 8. 그래프를 실행시키기 위해서 runner(session)
+#   Variable을 사용하면 학습하기 전에 반드시 초기화를 해야한다. 
+sess = tf.Session()
+sess.run(tf.global_variables_initializer())   #초기화 
+
+# 9. learning 작업(학습 시작)
+for step in range(3301):
+    _,w_val,cost_val,b_val = sess.run([train,W,cost,b], #사용하지 않는 변수는 _로 표현 
+                                   feed_dict={
+                                       x: x_data,
+                                       y: y_data
+                                   })
+    if step % 300 == 0:
+        print("{}번째, train값:{}, w값: {}, b값: {}, cost값 : {}" .format(step,_,w_val,b_val,cost_val))
+
+#학습이 끝남 => 최적의 W와 b값을 찾아내서 H를 만들어냄 
+#prediction 
+
+print(sess.run(H, feed_dict = {x: [4]}))
+

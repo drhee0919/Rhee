@@ -1,0 +1,290 @@
+#1.필요한 module import 
+import tensorflow as tf 
+
+#2. training data set (학습데이터 설정하기)
+xData = [1, 2, 3, 4, 5, 6, 7]
+yData = [25000, 55000, 75000, 110000, 128000, 155000, 180000]
+
+#3. placeholder(tensorflow그래프에 입력을 주기위한 파라미터 기능)
+X = tf.placeholder(dtype=tf.float32)
+Y = tf.placeholder(dtype=tf.float32)
+
+#4. Weight, bias 범위 지정하기
+W = tf.Variable(tf.random_uniform([1], -100, 100))
+b = tf.Variable(tf.random_uniform([1], -100, 100))
+
+#5. 가설을 하나 지정해주기 
+H = W * X + b
+
+#6. 비용함수 선언
+cost = tf.reduce_mean(tf.square( H - Y ))
+
+#7. (경사하강법에 적용할)learning rate지정하기(학습시 얼마나 점진적으로 다음값을 지정할지)
+a = tf.Variable(0.01)
+
+#7. 경사하강법을 쓰겠다고 선언
+optimizer = tf.train.GradientDescentOptimizer(a)
+
+#8. 학습방식: 비용을 최소화하는 방향으로
+train = optimizer.minimize(cost)
+init = tf.global_variables_initializer() #변수 초기화(초기변수 설정) 
+sess = tf.Session()#세션 초기화 
+sess.run(init)
+
+#9. 학습시작 : 5000번 시행해보자 
+for i in range(5001):
+    sess.run(train, feed_dict={X: xData, Y: yData})
+    if i % 500 == 0:
+        print("{} 번째, 비용: {}, W값: {}, b값 : {}" .format(i, sess.run(cost, feed_dict={X: xData, Y:yData}), sess.run(W), sess.run(b)))
+        #500번 돌때마다 세션 순번, 비용, W, b값 출력 
+print(sess.run(H, feed_dict = {X: [8]}))
+
+
+
+
+___________________________________________________________________________
+
+## Ozone.csv 를 통해 특정 온도에서의 오존량을 예측하는 모델을 도출하라
+## Ozone.csv : "Ozone", "Solar.R", "Wind", "Temp", "Month", "Day"
+import tensorflow as tf 
+import numpy as np
+import pandas as pd
+ 
+ozone_df = pd.read_csv("./data/ozone.csv")
+display(ozone_df)
+
+#1. 필요한 col만 불러오기 : 온도, 오존량 
+df1 = ozone_df.loc[:,["Ozone","Temp"]]
+display(df1)
+
+
+#※ 인덱스를 행으로 바꿔버리기(Ozone)
+#df1=df1.reset_index(level=0, inplace=True)
+#df1['Ozone'] = df1.index
+#display(df1)
+
+#2. 결측이 있는 행 제거 
+df1= df1.dropna()
+display(df1)
+display(df1['Temp'])
+display(df1['Ozone'])
+
+#df1 = df1.drop(["Ozone"]== "NaN",axis=0, inplace=False)
+#display(df1)
+#df1.isnull().sum()
+
+
+Ozone =df1.Temp.tolist()
+Temp = df1.Ozone.tolist() 
+#print(Ozone)
+#print(Temp)
+
+#4. 변수선언(기온, 오존)
+X = tf.placeholder(dtype=tf.float32)
+Y = tf.placeholder(dtype=tf.float32)
+
+#5. Weight, bias 범위 지정하기
+W = tf.Variable(tf.random_uniform([1], -100, 100))
+b = tf.Variable(tf.random_uniform([1], -100, 100))
+
+#6. 가설을 하나 지정해주기 
+H = W * X + b
+
+#7. 비용함수 선언
+cost = tf.reduce_mean(tf.square( H - Y ))
+
+#8. (경사하강법에 적용할)learning rate지정하기(학습시 얼마나 점진적으로 다음값을 지정할지)
+a = tf.Variable(0.0001)
+
+#9. 경사하강법을 쓰겠다고 선언
+optimizer = tf.train.GradientDescentOptimizer(a)
+
+#10. 학습방식: 비용을 최소화하는 방향으로
+train = optimizer.minimize(cost)
+init = tf.global_variables_initializer() #변수 초기화(초기변수 설정) 
+sess = tf.Session()#세션 초기화 
+sess.run(init)
+
+#11. 학습시작 : 10000번 시행해보자 
+for i in range(30001):
+    sess.run(train, feed_dict={X: Temp, Y: Ozone})
+    if i % 500 == 0:
+        print("{} 번째, 비용: {}, W값: {}, b값 : {}" .format(i, sess.run(cost, feed_dict={X: Temp, Y: Ozone}), sess.run(W), sess.run(b)))
+        #500번 돌때마다 세션 순번, 비용, W, b값 출력 
+print(sess.run(H, feed_dict = {X: [98]}))
+
+
+
+________________________________________________________________________________________
+
+
+## 강사님 해설 
+## 온도에 따른 Ozone 데이터를 학습한 후 Prediction 까지 진행 
+import tensorflow as tf
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt 
+
+# 학습데이터를 확보해서 전처리 과정을 거쳐야 한다. 
+df = pd.read_csv("./data/ozone.csv")
+display(df)
+df.shape
+print("읽어들인 데이터의 shape : {}" .format(df.shape))
+
+# 결측치 제거 시 다른 column에 의해서 너무 많은 행이 제거되는걸 방지하기 위해 필요한 column 만 추출 
+df = df[["Ozone","Temp"]]
+
+# 결측치 제거하기 
+df = df.dropna(how='any', inplace=False)
+print("결측치를 제거한 후 남은 데이터 : {}" .format(df.shape))
+
+# 이상치 제거하기
+# 각 column(온도와 오존)에 대해서 boxplot을 그려보아요 
+
+#plt.boxplot(df["Temp"])  #온도는 이상치가 존재하지 않다 
+#plt.boxplot(df["Ozone"])  #극단치가 2개 정도 보인다(요인이 있을 수 도 있지만 지워주자(가중치로 인한 왜곡방지))
+
+# 이상치를 찾기 위해서 Tukey Fence 방식을 이용(IRQ방식 이용)
+# IRQ값은 '3사분위 값' - '1사분위 값' 을 계산해서 구한다. 
+# 만약 (3사분위 값 + IRQ *1.5) 를 초과하는 값이 존재한다면 그것은 이상치로 간주 
+# 만약 (1사분위 값 - IRQ *1.5) 미만의 값이 존재하면 그것도 이상치로 간주 
+
+np.percentile(df["Ozone"], 25) #1사분위 값 출력 
+np.percentile(df["Ozone"], 75) #3사분위 값 출력
+q1,q3 = np.percentile(df["Ozone"],[25,75])
+irq = q3 - q1
+upper = q3 + irq*1.5
+print(upper) #131.125
+             #broadcasting을 통해 mask로 사용할 것 
+
+mask = df["Ozone"] > upper 
+#df.loc[mask] #61번째, 116번째 값 출력 
+#df.loc[~mask] #61번째, 116번째 값만 빼고 출력 
+df = df.loc[~mask]
+print("이상치를 제거한 후 남은 데이터 : {}" .format(df.shape))
+df.head()
+
+#linear regression을 하기 전에 데이터의 경향성을확인 
+#산점도(scatter)를 이용해서 데이터의 경향성을 확인해보아요! 
+plt.scatter(df["Temp"],df["Ozone"]) #우상향 경향 확인 
+                                    #온도가 높아질 수 록 오존량이 증가한다. 
+    
+    
+#########################################    
+
+# linear regression 시작
+# 1. training data set 준비 
+x_data = df["Temp"]
+y_data = df["Ozone"]
+
+# 2.필요노드들 생성하기 
+x = tf.placeholder(dtype=tf.float32)
+y = tf.placeholder(dtype=tf.float32)
+
+# 3. Weight, bias 
+W = tf.Variable(tf.random_normal([1]), name ="weight")
+b = tf.Variable(tf.random_normal([1]), name ="bias")
+
+# 4. 가설(Hypothesis) 정의
+H = W * x + b 
+
+# 5. cost function 정의 
+cost = tf.reduce_mean(tf.square(H-y))
+
+# 6. train 
+a = tf.Variable(0.0001)
+optimizer = tf.train.GradientDescentOptimizer(a)
+train = optimizer.minimize(cost)
+
+# 7. session 초기화 작업 
+init = tf.global_variables_initializer() #변수 초기화(초기변수 설정) 
+sess = tf.Session()#세션 초기화 
+sess.run(init)
+
+# 8. 학습시작  
+for step in range(30001):
+    _,cost_val=sess.run([train,cost],  #cost값만 보기 
+             feed_dict = {x : x_data,
+                          y : y_data})
+    if step % 300 ==0:
+        print("cost값은 : {}".format(cost_val))
+print(sess.run(H, feed_dict = {x: [80]}))
+
+##########################################
+
+##learning rate 와 횟수를 조정함에도 비용이 0에 도저히 가까워지지 않는거 같다?
+##정제된 데이터를 정규화나 표준화를 이용해서 값의 범위를 조절해야 한다. => 학습을 정상화시키기
+##데이터를 표준화 방식으로 다시 만들어서 학습을 진행 
+'''
+Normalization(표준화) : 
+각 데이터를 다음과 같은 방식으로 비율적으로 축소시키는 방법 
+각 요소의 값 => (요소값 - 전체데이터의 최소값) / (전체 데이터의 최대값 - 전체 데이터의 최소값)
+
+'''
+df["Temp_Norm"] = (df["Temp"]-df["Temp"].min()) / (df["Temp"].max()-df["Temp"].min())
+df["Ozone_Norm"] = (df["Ozone"]-df["Ozone"].min()) / (df["Ozone"].max()-df["Ozone"].min())
+
+#확인작업 
+#plt.scatter(df["Temp"],df["Ozone"])
+plt.scatter(df["Temp_Norm"],df["Ozone_Norm"]) #plot이 같이 출력된다.(따로따로 주석처리하고 볼 것)
+
+##########################################
+
+## 정규화한 데이터로 다시 학습 시키자  
+## normalization 한 데이터로 학습 데이터
+import tensorflow as tf
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt 
+
+# linear regression 시작
+# 1. training data set 준비 
+x_data = df["Temp_Norm"]
+y_data = df["Ozone_Norm"]
+
+# 2.필요노드들 생성하기 
+x = tf.placeholder(dtype=tf.float32)
+y = tf.placeholder(dtype=tf.float32)
+
+# 3. Weight, bias 
+W = tf.Variable(tf.random_normal([1]), name ="weight")
+b = tf.Variable(tf.random_normal([1]), name ="bias")
+
+# 4. 가설(Hypothesis) 정의
+H = W * x + b 
+
+# 5. cost function 정의 
+cost = tf.reduce_mean(tf.square(H-y))
+
+# 6. train 
+a = tf.Variable(0.00001)
+optimizer = tf.train.GradientDescentOptimizer(a)
+train = optimizer.minimize(cost)
+
+# 7. session 초기화 작업 
+init = tf.global_variables_initializer() #변수 초기화(초기변수 설정) 
+sess = tf.Session()#세션 초기화 
+sess.run(init)
+
+# 8. 학습시작  
+for step in range(30001):
+    _,cost_val=sess.run([train,cost],  #cost값만 보기 
+             feed_dict = {x : x_data,
+                          y : y_data})
+    if step % 300 ==0:
+        print("cost값은 : {}".format(cost_val))
+print(sess.run(H, feed_dict = {x: [80]}))
+
+
+# 학습이 종료된 후 최종적으로 얻은 W와 B의 값을 이용하여 line graph를 산점도와 함께 그려보기
+plt.scatter(df["Temp_Norm"],df["Ozone_Norm"])
+plt.plot(df["Temp_Norm"], df["Temp_Norm"] * sess.run(W) + sess.run(b)) #node는 세션이 없으면 값을 얻을 수 없다
+#결과는 게속 달라질 수 있다. 
+
+
+# 학습이 끝났으니.. Prediction을 해 보자
+# Ex/ 화씨 81도 에서 오존량을 예측해보자 
+tmp = (81 - df["Temp"].min()) / (df["Temp"].max()-df["Temp"].min())
+result_norm = sess.run(H, feed_dict = {x: tmp})
+result = result_norm * (df["Ozone"].max()-df["Ozone"].min()) + df["Ozone"].min()
+print(result)
