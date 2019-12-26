@@ -1,0 +1,392 @@
+## 복~습
+## 단순선형회귀(simple linear regression)
+## 데이터는 온도에 따른 오존량 
+import tensorflow as tf
+import numpy as np 
+import pandas as pd 
+import matplotlib.pyplot as plt 
+from scipy import stats #science python : 과학연산을 위한 파이썬 모듈, 통계를 다루는 서브모듈 포함
+
+# 1. data loading(raw data loading)
+df = pd.read_csv("./data/ozone.csv")
+#display(df)
+
+# 2. Data Pre processing(필요데이터 선별, 결측치, 이상치제거)
+# 2-1. 필요한 col부터 추출
+df = df[["Ozone","Temp"]] #(153,2)
+
+# 2-2. 결측치 처리 
+df = df.dropna(how="any", inplace=False) #(116,2) #결측 보이면 다 삭제, 원본 훼손은 하지 말고  
+
+# 2-3. 이상치 처리(IRQ기반 : Tukey Fences방식)
+#이상치를 제대로 처리하지 않으면 가중치 때문에 학습에 크게 영향을 미칠 수 있다. 
+#이상치가 일단 존재하는 지 확인 (boxplot사용)
+'''
+plt.boxplot(df["Temp"]) #이상치 미식별 (주석처리)
+plt.boxplot(df["Ozone"]) #이상치 2건 식별(상위이상치) (주석처리)
+'''
+#IQR(= 3사분위값 - 1사분위값 )값을 구해서 상위, 하위 이상치의 경계를 계산 
+q1,q3 = np.percentile(df["Ozone"],[25,75]) #tuple로 값을 리턴
+iqr = q3-q1 #45.25
+upper = q3 + iqr * 1.5 #131.125, 상위이상치를 처리하기 위한 경계값 반환 
+mask = df["Ozone"] > upper #boolean mask 생성, broadcasting을 이용한 필터링 
+df = df.loc[~mask] #걸러지지 않은것만 반환
+display(df) # (114,2)
+
+#2-4. 데이터가 선형적 관계에 있는지 산점도 도시 
+#plt.scatter(df["Temp"],df["Ozone"]) #우상향 확인(주석처리)
+
+#2-5. 정형화, 혹은 표준화를 이용해서 데이터의 scale변환  
+# 정규화(Normalization) = (요소값-최소값) / (최대값 - 최대값)
+# => 0~1 사이의 값으로 scale
+# 표준화(Standardization) = (요소값-평균) / 표준편차 
+# 정규화방식을 이용해서 데이터를 변환 
+# 일반적으로는 모듈을 이용(다음시간에..), 우리는 프로그램으로 처리할 것 
+df["Temp_Norm"] = (df["Temp"]-df["Temp"].min()) / (df["Temp"].max()-df["Temp"].min())
+df["Ozone_Norm"] = (df["Ozone"]-df["Ozone"].min()) / (df["Ozone"].max()-df["Ozone"].min())
+display(df) #(114,4)
+
+##학습에 적합한 데이터의 완성 
+
+#########################################    
+## 우리가 텐서플로우로 얻은 값과 scipy로 얻은 값을(모듈을 사용해서 얻은 값을) 비교해보자 
+## machine learning(Tensorflow)
+# linear regression 시작
+# 1. training data set 준비 
+x_data = df["Temp_Norm"]
+y_data = df["Ozone_Norm"]
+
+# 2.필요노드들 생성하기 
+x = tf.placeholder(dtype=tf.float32)
+y = tf.placeholder(dtype=tf.float32)
+
+# 3. Weight, bias 
+W = tf.Variable(tf.random_normal([1]), name ="weight")
+b = tf.Variable(tf.random_normal([1]), name ="bias")
+
+# 4. 가설(Hypothesis) 정의
+H = W * x + b 
+
+# 5. cost function 정의 
+cost = tf.reduce_mean(tf.square(H-y))
+
+# 6. train 
+a = tf.Variable(0.0001)
+optimizer = tf.train.GradientDescentOptimizer(a)
+train = optimizer.minimize(cost)
+
+# 7. session 초기화 작업 
+init = tf.global_variables_initializer() #변수 초기화(초기변수 설정) 
+sess = tf.Session()#세션 초기화 
+sess.run(init)
+
+# 8. 학습시작  
+for step in range(30001):
+    _,cost_val=sess.run([train,cost],  #cost값만 보기 
+             feed_dict = {x : x_data,
+                          y : y_data})
+    if step % 300 ==0:
+        print("cost값은 : {}".format(cost_val))
+#print(sess.run(H, feed_dict = {x: [80]}))
+
+# 이렇게 처리하면 문제가 있다. 
+# 80이란 온도를 0~1사이의 값으로 scale(단위 맞춰주기)
+tmp = (80 - df["Temp"].min()) / (df["Temp"].max() - df["Temp"].min())
+result_scale = sess.run(H, feed_dict={x: tmp})
+result = result_scale * (df["Ozone"].max()-df["Ozone"].min()) + df["Ozone"].min()
+#result = result_scale * ( df["Ozone"].min()) / (df["Ozone"].max() - df["Ozone"])
+print(result)
+
+
+
+########
+##또다른 방법 
+# scipy의 stats module을 사용해서 편하게 처리 
+x = df["Temp"]
+y = df["Ozone"]
+
+result = stats.linregress(x,y)
+print(result)
+print(80*result[0] + result[1])
+
+
+#################################
+
+## multiple linear regression(다중 선형 회귀)
+## 독립변수가 2개 이상인 경우 
+## Hypothesis 가 변경 
+## 단순 선형 회귀 => H = Wx + b 
+## 다중 선형 회귀 => H = w1x1 + w2x2 + w3x3 + b (독립변수가 많아짐, weight도 따라 많아짐) 
+## 행렬곱의 형태로서 값을 반환한다. (w와 x를 행렬로 표현) 
+## 결국 matrix 형태로 W와 xrk 표현되요! 
+## H = matmul(X,W) + b  #매트릭스의 곱 
+
+## 퀴즈성적을 이용한 최종시험성적 예측 
+## 사용하는 데이터 
+## 퀴즈1 퀴즈2 퀴즈3 최종성적
+##  73    80    75    152
+##  93    88    93    185
+##  89    91    90    180
+##  96    98    100   196
+##  73    66    70    142
+##  80    90    50    ??
+
+# 1. training data set 준비 
+x_data = [[73,80,75],
+          [93,88,93],
+          [89,91,90],
+          [96,98,100],
+          [73,66,70]]    
+y_data = [[152], [185], [180], [196] ,[142]] #다중회귀분석은 x와 y가 모두 2차원 matrix형태가 되어야 한다. 
+
+# 2. placeholders 
+#X = tf.placeholder(shape=[5,3], dtype=tf.float32) #shape지정 필요, 5행 3열 
+X = tf.placeholder(shape=[None,3], dtype=tf.float32) #지정안하고 때에 다라 맞춰줄 수 있다. 
+                                                     #학습할 때와 예측할 때와 다를 경우 
+Y = tf.placeholder(shape=[None,1], dtype=tf.float32)         
+
+
+# 3. Weight, bias 
+W = tf.Variable(tf.random_normal([3,1]), name ="weight")
+b = tf.Variable(tf.random_normal([1]), name ="bias")
+
+# 4. 가설(Hypothesis) 정의
+H = tf.matmul(X,W) + b
+
+######### 이하동일
+
+# 5. cost function 정의 
+cost = tf.reduce_mean(tf.square(H-Y))
+
+# 6. train 
+a = tf.Variable(0.00001)
+optimizer = tf.train.GradientDescentOptimizer(a)
+train = optimizer.minimize(cost)
+
+# 7. session 초기화 작업 
+init = tf.global_variables_initializer() #변수 초기화(초기변수 설정) 
+sess = tf.Session()#세션 초기화 
+sess.run(init)
+
+tmp = [80,90,50]
+
+# 8. 학습시작  
+for step in range(30001):
+    _,cost_val=sess.run([train,cost],  #cost값만 보기 
+             feed_dict = {X : x_data,
+                          Y : y_data})
+    if step % 300 ==0:
+        print("cost값은 : {}".format(cost_val))
+print(sess.run(H, feed_dict = {X:[tmp]}))
+
+
+
+
+############################################################################3
+
+
+
+
+#### 다중선형회귀 연습문제
+### 관측된 Solar.R, Wind, Temp에 대한 Ozone량에 대한 데이터를 이용하여 machine learning을 진행하고
+### Solar.R : 170, Wind : 7.4, Temp : 67.0에 대한 Ozone수치를 예측하세요.
+### 27.9
+
+import tensorflow as tf
+import numpy as np 
+import pandas as pd 
+import matplotlib.pyplot as plt 
+from scipy import stats #science python : 과학연산을 위한 파이썬 모듈, 통계를 다루는 서브모듈 포함
+
+# 1. data loading(raw data loading)
+df = pd.read_csv("./data/ozone.csv")
+display(df)
+
+# 2. Data Pre processing(필요데이터 선별, 결측치, 이상치제거)
+# 2-1. 필요한 col부터 추출
+df = df[["Ozone","Solar.R","Wind","Temp"]] #(153,2)
+
+# 2-2. 결측치 처리 
+df = df.dropna(how="any", inplace=False) #(116,2) #결측 보이면 다 삭제, 원본 훼손은 하지 말고  
+
+# 2-3. 이상치 처리(IRQ기반 : Tukey Fences방식)
+#이상치를 제대로 처리하지 않으면 가중치 때문에 학습에 크게 영향을 미칠 수 있다. 
+#이상치가 일단 존재하는 지 확인 (boxplot사용)
+
+#plt.boxplot(df["Ozone"]) #이상치 2건 식별(상위이상치)
+#plt.boxplot(df["Wind"]) # 이상치 3간식별(상위이상치)
+#plt.boxplot(df["Solar.R"]) #이상치 미식별
+#plt.boxplot(df["Temp"]) #이상치 미식별 
+
+
+#IQR(= 3사분위값 - 1사분위값 )값을 구해서 상위, 하위 이상치의 경계를 계산 
+q1,q3 = np.percentile(df["Ozone"],[25,75]) 
+iqr = q3-q1 
+upper = q3 + iqr * 1.5 
+mask = df["Ozone"] > upper 
+df = df.loc[~mask] 
+#display(df) 
+
+q1,q3 = np.percentile(df["Wind"],[25,75]) 
+iqr = q3-q1 #45.25
+upper = q3 + iqr * 1.5 
+mask = df["Wind"] > upper 
+df = df.loc[~mask] 
+display(df) 
+
+#2-4. 데이터가 선형적 관계에 있는지 산점도 도시 
+'''
+plt.scatter(df["Temp"],df["Ozone"]) #우상향 확인
+plt.scatter(df["Wind"],df["Ozone"]) #우하향 확인
+plt.scatter(df["Solar.R"],df["Ozone"])#우상향? 좀 에매함 
+'''
+
+#2-5. 정형화, 혹은 표준화를 이용해서 데이터의 scale변환  
+# 정규화(Normalization) = (요소값-최소값) / (최대값 - 최대값)
+# => 0~1 사이의 값으로 scale
+# 표준화(Standardization) = (요소값-평균) / 표준편차 
+# 정규화방식을 이용해서 데이터를 변환 
+# 일반적으로는 모듈을 이용(다음시간에..), 우리는 프로그램으로 처리할 것 
+df["Temp_Norm"] = (df["Temp"]-df["Temp"].min()) / (df["Temp"].max()-df["Temp"].min())
+df["Solar.R_Norm"] = (df["Solar.R"]-df["Solar.R"].min()) / (df["Solar.R"].max()-df["Solar.R"].min())
+df["Wind_Norm"] = (df["Wind"]-df["Wind"].min()) / (df["Wind"].max()-df["Wind"].min())
+df["Ozone_Norm"] = (df["Ozone"]-df["Ozone"].min()) / (df["Ozone"].max()-df["Ozone"].min())
+display(df) #(114,4)
+
+
+
+##학습에 적합한 데이터의 완성 
+
+
+# 1. training data set 준비 
+x_data = df[["Solar.R_Norm","Wind_Norm","Temp_Norm"]] 
+          
+y_data = df[["Ozone_Norm"]] #다중회귀분석은 x와 y가 모두 2차원 matrix형태가 되어야 한다. 
+
+
+# 2. placeholders 
+#X = tf.placeholder(shape=[5,3], dtype=tf.float32) #shape지정 필요, 5행 3열 
+X = tf.placeholder(shape=[None,3], dtype=tf.float32) #지정안하고 때에 다라 맞춰줄 수 있다. 
+                                                     #학습할 때와 예측할 때와 다를 경우 
+Y = tf.placeholder(shape=[None,1], dtype=tf.float32)         
+
+
+# 3. Weight, bias 
+W = tf.Variable(tf.random_normal([3,1]), name ="weight")
+b = tf.Variable(tf.random_normal([1]), name ="bias")
+
+# 4. 가설(Hypothesis) 정의
+H = tf.matmul(X,W) + b
+
+######### 이하동일
+
+# 5. cost function 정의 
+cost = tf.reduce_mean(tf.square(H-Y))
+
+# 6. train 
+a = tf.Variable(0.00001)
+optimizer = tf.train.GradientDescentOptimizer(a)
+train = optimizer.minimize(cost)
+
+# 7. session 초기화 작업 
+init = tf.global_variables_initializer() #변수 초기화(초기변수 설정) 
+sess = tf.Session()#세션 초기화 
+sess.run(init)
+
+# 8. 학습시작  
+#ex1 = [[170,7.4,67]]
+tmp = [[(170 - df["Solar.R"].min()) / (df["Solar.R"].max() - df["Solar.R"].min()),
+       (7.4 - df["Wind"].min()) / (df["Wind"].max() - df["Wind"].min()),
+       (67 - df["Temp"].min()) / (df["Temp"].max() - df["Temp"].min())]]
+
+
+
+for step in range(30001):
+    _,cost_val=sess.run([train,cost],  #cost값만 보기 
+             feed_dict = {X : x_data,
+                          Y : y_data})
+    if step % 300 ==0:
+        print("cost값은 : {}".format(cost_val))
+
+result_scale = sess.run(H, feed_dict={X: tmp})
+result = result_scale * (df["Ozone"].max()-df["Ozone"].min()) + df["Ozone"].min() #역산, 정규화된거 원래수치로
+print(result)
+
+
+
+###############
+###또다른 방법
+
+### sklearn module(사이킷런, 텐서플로우 아님!)을 이용해서 학습시키고 예측까지 수행 
+from sklearn import linear_model
+import numpy as np 
+import pandas as pd
+
+df = pd.read_csv("./data/ozone.csv")
+df = df[["Ozone","Solar.R","Wind","Temp"]]
+df = df.dropna(how="any", inplace=False)
+
+q1,q3 = np.percentile(df["Ozone"],[25,75]) 
+iqr = q3-q1 
+upper = q3 + iqr * 1.5 
+mask = df["Ozone"] > upper 
+df = df.loc[~mask] 
+#display(df) 
+
+q1,q3 = np.percentile(df["Wind"],[25,75]) 
+iqr = q3-q1 #45.25
+upper = q3 + iqr * 1.5 
+mask = df["Wind"] > upper 
+df = df.loc[~mask] 
+display(df) 
+
+#라이브러리가 알아서 처리해주기때문에 정규화 작업 생략 
+
+###############################Machine learning
+X = df[["Solar.R","Wind","Temp"]]
+Y = df["Ozone"]
+
+lm = linear_model.LinearRegression()
+lm.fit(X,Y)
+
+prediction = lm.predict([[170,7.4,67]]) #2차원 형태로 넣어줄것(X가 data frame)
+print("예측값은 : {}" .format(prediction))
+
+
+###############
+###또다른 방법2
+### 다중선형회귀 또다른 방법 -> 정규화 자동화  
+import tensorflow as tf
+import numpy as np 
+import pandas as pd 
+import matplotlib.pyplot as plt 
+from sklearn.preprocessing import MinMaxScaler #정규화를 시켜주는 서브모듈 포함
+
+#data loading 
+df = pd.read_csv("./data/ozone.csv")
+df = df.dropna(how="any", inplace=False)
+
+#전처리 
+q1,q3 = np.percentile(df["Ozone"],[25,75]) 
+iqr = q3-q1 
+upper = q3 + iqr * 1.5 
+mask = df["Ozone"] > upper 
+df = df.loc[~mask] 
+#display(df) 
+
+q1,q3 = np.percentile(df["Wind"],[25,75]) 
+iqr = q3-q1 #45.25
+upper = q3 + iqr * 1.5 
+mask = df["Wind"] > upper 
+df = df.loc[~mask] 
+display(df) 
+
+# 정규화 
+x_data = df[["Solar.R","Wind","Temp"]]
+x_data = MinMaxScaler().fit_transform(x_data)
+y_data = df["Ozone"].values.reshape(-1,1)
+y_data = MinMaxScaler().fit_transform(y_data)
+
+#######이하 생략 
+
+
