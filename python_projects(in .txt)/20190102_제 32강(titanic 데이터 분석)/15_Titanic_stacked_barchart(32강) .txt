@@ -1,0 +1,173 @@
+## 강사님 답안지
+## titanic을 같이풀어보자 
+
+#필요한 모듈 불러오기 
+import pandas as pd 
+
+# data loading(train data set loading)
+train_df = pd.read_csv("./data/titanic/train.csv")
+
+#데이터 확인 
+train_df.head()
+train_df.shape #(891, 12)
+train_df.info() #각 column(feature)의 상세정보를 출력
+train_df.isnull().sum(axis=0) #column별 결측값 확인 (N)
+'''
+결측치와 이상치를 찾아서 적절한 값으로 변경하던지
+아니면 삭제하던가 다른 처리를 해야한다.(비추)
+'''
+
+# 어떤 feature가 생존여부에 영향을 미치는지 확인
+# 그래프로 확인해보자 
+# (파이차트, 누적 바차트 많이 사용)
+# 성별이 생존여부에 영향을 미치는지 확인해보자
+# 생존한 사람의 성별에 따른 사람수를구하자 
+survived = train_df.loc[train_df["Survived"]==1]["Sex"].value_counts() 
+survived.name = "Survived"
+survived
+# 사망한 사람의 성별에 따른 사람수를 구해보아요! 
+dead = train_df.loc[train_df["Survived"]==0]["Sex"].value_counts()
+dead.name = "Dead"
+dead
+
+#그래프를 그리기 위해서 데이터 프레임으로 만듥
+sex_df = pd.DataFrame([survived,dead])
+sex_df
+sex_df.plot(kind="bar", stacked=True) #누적 막대 그래프를 그리겠다고 선언 
+
+'''
+성별이 생존여부에 영향을 미침(O)
+'''
+
+
+# Pclass이 생존여부에 영향을 미치는지 확인
+
+# 생존한 사람의 Pclass에 따른 사람수를 구해보자 
+survived = train_df.loc[train_df["Survived"]==1]["Pclass"].value_counts() 
+survived.name = "Survived"
+survived
+
+# 사망한 사람의 Pclass에 따른 사람수를 구해보아요! 
+dead = train_df.loc[train_df["Survived"]==0]["Pclass"].value_counts()
+dead.name = "Dead"
+dead
+
+#그래프를 그리기 위해서 데이터 프레임으로 만듥
+pclass_df = pd.DataFrame([survived,dead])
+pclass_df
+pclass_df.plot(kind="bar", stacked=True) #누적 막대 그래프를 그리겠다고 선언 
+
+'''
+Pclass가 생존여부에 영향을 미침(O)
+'''
+
+
+
+#함수를 선언해서 써보자(다른방법)
+def stackedBarChart(feature):
+    survived = train_df.loc[train_df["Survived"]==1][feature].value_counts() 
+    survived.name = "Survived"
+    survived
+ 
+    dead = train_df.loc[train_df["Survived"]==0][feature].value_counts()
+    dead.name = "Dead"
+    dead
+
+    chart_df = pd.DataFrame([survived,dead])
+    chart_df.plot(kind="bar", stacked=True) #누적 막대 그래프를 그리겠다고 선언 
+
+
+stackedBarChart("Sex")
+stackedBarChart("Pclass") #매번 복사하여 쓸 필요 없다 
+stackedBarChart("SibSp")
+stackedBarChart("Embarked") #놀랍게도 승차 지역도 생존에 영향을 미치고 있다! 
+train_df.head()
+# text로 되어있는 부분은 machine learning하기가 힘들다 
+# text로 되어 있는 부분은 적절한 scale의 숫자로 변환 
+# NaN(결측치)는 삭제하는 것 보다는 적절한 값으로 대체 
+
+# 제일먼저 해결해야 하는 feature는 Name 
+# Name자체는 그 자체로는 크게 의미가 없어 보이지만 이름의 특정 keyword가 들어가 있고, 이 keyword가 
+# 생존에 영향을 미칠 수 있다., 
+train_df["Title"]= train_df["Name"].str.extract("([A-Za-z]+)\.") #영문자, 대소문자 한 다음에 . 이 나오는 형태만 뽑아라
+                                              # (Mr. Mrs. Miss. Rev. ...)
+train_df["Title"].value_counts() #Title 컬럼에 대해서 몇 개 있는지 출력 
+
+#Title안에 Mr. Miss Mrs. Other를 각각 0,1,2,3으로 변환 (Series의 map 이용)
+title_mapping_dict = {"Mr" : 0, "Miss":1, "Mrs":2,
+                      "Master" :3, "Dr" :3, "Rev" :3,
+                      "Col" :3, "Major" :3, "Mlle" :3,
+                      "Don" :3, "Jonkheer" :3, "Countess" :3,
+                      "Lady" :3, "Mme" :3, "Ms" :3,
+                      "Sir" :3, "Capt" :3} #mapping되는 형태를 dict 형식으로 선언
+train_df["Title"]=train_df["Title"].map(title_mapping_dict)
+train_df #출력 확인(컬럼생성여부)
+stackedBarChart("Title") # Mr. 가 압도적으로 많이 죽은것을 확인 
+
+#제거할 건 제거하자 
+train_df.drop("Name", axis=1, inplace=True)
+train_df.drop("Ticket", axis=1, inplace=True)
+train_df.drop("Cabin", axis=1, inplace=True)
+train_df
+
+#train 데이터를 좀더 수정해보자 
+
+# 성별 col에 대해 male=0, female=1로 수정해보자 
+sex_mapping_dict = {'male': 0, 'female':1}
+train_df["Sex"]=train_df["Sex"].map(sex_mapping_dict)
+
+
+#탑승지역의 결측치를 "S"로 대체 (그냥 S에서 가장많이 타서..)
+train_df["Embarked"].fillna("S", inplace=True)
+# 탑승지역 col에 대해서 S->0, Q->1, C->2로 변환 
+embarked_mapping_dict = {'S': 0, 'Q': 1, 'C': 2} #linear처럼 가중치를 크게 생각하지 않고 그냥 나눠준다고(구분) 생각 
+train_df["Embarked"]=train_df["Embarked"].map(embarked_mapping_dict)
+display(train_df)
+display(stackedBarChart("Embarked"))
+
+
+# Age에는 결측치가 많다. 
+# 가능한한 타당한 이유로 결측치를 다른 값으로 대체해 주어야 한다. 
+# -전체사람의 평균을 구해서 결측치를 채운다. 
+# -Title을 이용해서 각 title에 맞는 평균 나이로 결측치를 채운다. 
+age_mean = train_df.groupby("Title")["Age"].mean()
+a = train_df[train_df["Title"]==0]["Age"].fillna(age_mean[0]) #series를 return 받는다
+b = train_df[train_df["Title"]==1]["Age"].fillna(age_mean[0])
+c = train_df[train_df["Title"]==2]["Age"].fillna(age_mean[0])
+d = train_df[train_df["Title"]==3]["Age"].fillna(age_mean[0])
+result_series = pd.concat([a,b,c,d])
+train_df["Age"]=result_series.sort_index()
+display(train_df)
+
+# Age에 대해서 Binning 처리 
+# Binning 처리를 할 때 고려해야 할 사항 -> 간격은 어떻게 설정? 
+# Age -> 0~20 :0 
+# Age -> 20살 초과~40이하 : 1
+# Age -> 40살 초과~60이하 : 2
+# Age -> 60살초과 : 3
+train_df.loc[train_df["Age"] <= 20, "Age"] = 0
+train_df.loc[(train_df["Age"] > 20) & (train_df["Age"] <= 40), "Age"] = 1
+train_df.loc[(train_df["Age"] > 40) & (train_df["Age"] <= 60), "Age"] = 2
+train_df.loc[60 < train_df["Age"] , "Age"] = 3
+
+stackedBarChart("Age") # 20대~40대 인원들이 가장 많이 죽음(원래 구성비율자체가 높음)
+display(train_df) # 이 셀만 다시 실행하면 다 꼬인다!! 재실행시 유의할 것
+                  # 운임요금(Fare) 를 마지막 binning 처리 대상으로! 
+				  
+# Fare까지 Binning 처리를 해 보자. 
+# 여기에 이상치 처리까지하면 모든 전처리가 끝이난다! 
+import numpy as np 
+
+print(max(train_df["Fare"])) #512.3292
+print(min(train_df["Fare"])) #0.0
+print(np.percentile((train_df["Fare"]), 25)) #7.9104
+print(np.percentile((train_df["Fare"]), 50)) #14.4542
+print(np.percentile((train_df["Fare"]), 75)) #31.0
+
+train_df.loc[train_df["Fare"] <= 7.9104, "Fare"] = 0
+train_df.loc[(train_df["Fare"] > 7.9104) & (train_df["Fare"] <= 14.4542), "Fare"] = 1
+train_df.loc[(train_df["Fare"] > 14.4542) & (train_df["Fare"] <= 31.0), "Fare"] = 2
+train_df.loc[31.0 < train_df["Fare"] , "Fare"] = 3
+
+display(train_df)
+stackedBarChart("Fare")				  
