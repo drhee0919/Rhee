@@ -1,0 +1,311 @@
+### 딥러닝을 시행하기 위해 GPU를 사용해보자 
+## 지금 사용하고 있는 tensorflow는 cpu 버전 
+## deep learning으로 가면 더 많은 수학적 연산(matrix 연산)이 필요하다
+## GPU를 이용하면 더 빠른 계산이 가능하다 
+## 새로운 가상환경을 만들어서 tensorflow GPU버전을 이용해 보자 (NVIDIA GeForce)
+## CPU_ENV -> GPU_ENV
+
+## 1. 새로운 가상환경을 하나 생성해야 해요
+## conda create -n gpu_env python=3.6 openssl
+## 2. 새로운 가상환경 실행 
+## activate gpu_env 
+## 3. nb_conda 설치 
+## conda install nb_conda 
+## 4. python -m ipykernel install --user --name=gpu_env --display-name=[GPU_ENV]
+## Installed kernelspec gpu_env in C:\Users\student\AppData\Roaming\jupyter\kernels\gpu_env 
+## 이런식으로 뜨면 OK
+## 5. 최신 비디오 드라이버 설치 
+## 441.87-desktop-win10-64bit-international-whql.exe 
+## 6. cuda 설치(NVIDIA)
+## cuda_10.0.130_411.31_win10.exe 실행
+## 7. cuDNN 압축풀어서 덮어쓰기(cuda설치된 경로에)
+## 8. pip install pandas
+## pip install numpy 
+## pip install matplotlib 
+## pip install tensorflow--gpu==1.15
+
+
+## 개념 복습
+## 1. learning rate 
+## 정해져 있는 기준은 없다! 
+## 통상 0.01을 기준으로 cost값을 보고 learning rate 를 조절 
+## weight = (learning rate * 기울기)
+## 만약 learning rate 가 크다면 ? → overshooting(발산) 현상이 발생(이차함수 반대편으로 널뛰기)
+## 만약 learning rate 가 작다면 ? → local minimum(극소) 문제가 발생(바닥인줄 알았는데 옆에 더 깊은 바닥이)
+
+## 2. 입력데이터의 preprocessing 
+## feature engineering을 포함해서 각 feature의 데이터의 범주와 크기를 살펴보아야 한다. 
+## 정규화(Normalization) - MinMaxScale을 이용한다. (최대최소를 이용해서 0~1사이로 스케일링) 
+##  -> 데이터를 학습에 용이한 형태로 
+## 표준화(Standardization) - 평균과 표준편차를 이용해서 -1~1사이의 값으로 scale하는 방식 
+
+## 3. overfitting 
+## 모델을 만들어서 학습을 하는데 학습데이터에 너무 잘 들어맞는 모델이 생성되는 경우 (재현성 저해)
+## 실제 데이터를 적용할 때 결과값 예측이 잘 안되는 경우를 의미 
+## overfitting을 피하려면 
+## 1) 많은 training data set이 있어야 한다. (모든 문제는 데이터가 없어서) 
+## 2) column의 수(=feature의 수)를 가능한 줄여햐 한다. -> 중복, 또는 필요없는 col을 삭제 
+
+## 4. 학습과정 
+## 일반적으로 training data set의 크기가 굉장히 크다 
+## -> 1 epoch을 수행하는 시간이 오래걸린다 
+## batch 처리를 이용해서 실제 학습을 진행 
+
+## 5. 정확도 측정 
+## 일반적으로 raw data set을 우리가 얻게되면 training data set, test data set으로 분리(7:3. 8:2)
+## 평가가 되지 않으면 잘 만들었는지 알 도리가 없다! 반드시 시행 
+## n fold cross validation 
+
+## 기술적 화두 
+## 소프트웨어 측면 - 인공지능(AI)
+## 하드웨어 측면 - 양자이론, 양자컴퓨터 
+
+## 인공지능은 CS에서 궁극의 목표 중 하나 (경제, 의료 문화 등 우리가 문제시 했던 대부분의 대상들에 해결이 가능함)
+## 문제도 많다! -> 대표적으로 일자리문제(20년만 지나면 일자리가 절반으로 줄어들 것이다라는 예측)
+
+## 빅뱅의 시작을 1년으로 잡으면..
+## 인류의 탄생은 2일전
+## 산업혁명은 2초전 
+## 기술의 발전속도는 기하급수적으로 증가하고 있다. 
+## 언젠가는 우리가 만드는 프로그램이 사람의 지능을 앞서는 순간이 올거라고 예측 할 수 있다. 
+## -> 이 시점을 특이점(Singularity) 라고 지칭 
+## 그 시점을 사람들이 예측해보건데,, 약 2045 년 예측 
+## 많은 학자들 중 일부는 특이점이 오는 시기가 인류가 멸망하는 시기라고도 함
+
+## 프로그래밍을 통해서 AI를 제어할 수 있을까? 
+## 뇌과학자 -> AI가 개발이 되면 인공지능은 전자회로 속도로 학습을 하고 사람은 생화학적 회로로 학습(100만배차이)
+## ex/ MIT의 AI개발자들이 만약 인공지능이 만들어지면 인공지능이 1주일동안 할 수 있을 MIT AI 개발자들이 2만년정도 걸림 
+## 즉, 어떤 회사가 시장에 1주일이라도 먼저 인공지능을 내놓는다면 2만년의 시간가치를 얻음 
+## 일론머스크는 AI가 핵무기보다 위험하다고 말함 
+
+## 현 시점에 가장 빠른 슈퍼컴퓨터가 미국 - IBM이 만든 서밋(summit)
+## 농구코트 2배정도되는 크기에 캐비넷 깔아놓고 그 안에 컴퓨터를 가득 채워넣은 크기 (고성능 cpu 9200개, gpu 27000개)
+## 우주개발 시뮬레이션, 기후 예측 등의 목적으로 쓰임 
+## 작년 10월 23일, 구글이 양자우위를 달성했다고 발표(nature) : 기존 슈퍼컴퓨터의 연산속도를 압도한다고 발표 
+## 54개의 큐비트를 탑재 시커모어(Sycamore)라는 양자 컴퓨터용 프로세서 -> 서밋을 압살한다고 발표 
+## 단, 굉장히 국한된 특정 분야에만 국한된 연산에나 해당 (ex/ 인간의 게놈지도 연구)
+
+## 인공지능(AI)
+## CS 분야에서 궁극의 목표 중 하나 -> 1960년대부터 꾸준히 연구 개발 
+## 인간의 뇌를 연구하기 시작 : 입력데이터 -> 뉴런의 가중치를 줘서 받아들이는(활성화되는) 부분
+## 인체가 받아들이는 수 많은 입력데이터는 가중치를 통해 시냅스에 합쳐진다 
+## 이후 activation 여부 결정 (다음 뉴런으로 데이터를 전파할지 말지)
+## 이런 뇌와 신경세포의 매커니즘을 답습해서 '퍼셉트론(Perceptron)'의 개념 생성(가상의 학습시계)
+## 퍼셉트론(뉴런의 동작방식) 1960년대 처음 대두 (여러개의 퍼셉트론을 유기적으로 잘 연결하면 인공지능을 만들 수 있지 않을까 ?
+## 1958년에 퍼셉트론을 모델링한 기계를 실제로 구현암(뉴욕타입즈에 기사 실림) . 
+## -> 조금만 있으면 스스로 말하고, 듣고, 쓰고, 창조가 가능한 프로그램을 만다.
+
+## AND / OR에 대한 logistic regression -> percpetron
+## 진리표를 이용한 학습 
+## 여기서 특정 게이트에 대한 제한 발견 
+import tensorflow as tf
+
+
+# XOR 연산 진리표
+x_data = [[0,0],
+          [0,1],
+          [1,0],
+          [1,1]]
+
+
+y_data = [[0],
+          [1],
+          [1],
+          [0]]
+
+
+# OR 연산 진리표 
+'''
+y_data = [[0],
+          [1],
+          [1],
+          [1]]
+'''
+
+# tensorflow로 machine learning
+# placeholder
+X = tf.placeholder(shape=[None,2], dtype=tf.float32)
+Y = tf.placeholder(shape=[None,1], dtype=tf.float32)
+
+# Weight & bias
+W = tf.Variable(tf.random_normal([2,1]), name="weight")
+b = tf.Variable(tf.random_normal([1]), name="bias")
+
+# Hypothesis
+logit = tf.matmul(X,W) + b
+H = tf.sigmoid(logit)
+
+# Cost(Loss) function 
+cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logit, labels=Y))
+
+#train
+optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.01)
+train = optimizer.minimize(cost)
+
+# session, 초기화
+sess = tf.Session()
+sess.run(tf.global_variables_initializer())
+
+# 학습 
+for step in range(30000):
+    _, cost_val = sess.run([train, cost], feed_dict={ X : x_data, 
+                                                      Y : y_data})
+    if step % 3000 == 0:
+        print("Cost값은 : {}".format(cost_val))
+        
+predict = tf.cast(H>0.5, dtype = tf.float32)
+sess.run(predict, feed_dict={X :[[0,0]]}) #[0,1],[1,0],[1,1]
+
+
+## Perceptron(logistic)으로 AND/OR는 구현이 가능 
+## XOR(Exclusive OR)는 Perceptron으로 구현이 안되요 
+## 많은 사람들이 XOR를 어떻게 Perceptron으로 구현할 수 있을 까 고민함 
+## 1969년에 마빈 민스키라는 사람이 논문을 하나 발표(MIT AI lab창시자) 
+## -> 요지는 XOR연산은 하나의 perceptron 으로 연산이 불가능해(수학적으로 증명)
+## -> 한개로는 안 되지만 여러개 MLP(multi layer perceptron)로는 가능하다(XOR 논리게이트 검색)
+## -> 근데 MLP은 학습이 너무 어려워서 지구상에 있는 누구라도 이 학습을 시킬 수 가 없다 
+## 이후로 AI는 일시적인 침채기(당분간 활활타오르다 아무도 안함)
+## 당시로서는 학습할 수 있는 방법을 찾기가 너무 어렵다는 것이 문제 
+## 1974년도 Paul이라는 박사과정 학생이 Backpropagation(역전파) 이라는 알고리즘, 하나의 방법을 고안 
+## 시간이 더 지나서(접을 수는 없으니) 1982년도에 비슷한 내용으로 발표하나, 또 묻혀버림
+## 1986년 Hinton 교수가 논문을 발표 -> 그때 다시 주목을 받기 시작함 
+
+## 1995년쯤에 BackPropagation 방식이 안되는 건 아니지만 더 복잡한 문제를 학습하는데 어렵다는 사실 발견 
+## -> 간단한 문제는 해결이 가능하지만 복잡한 문제는 또 해결이 불가능함
+## 이 시기에 다른 여러가지 알고리즘들이 마구잡이로 쏟아져 나옴 
+## SVM, 나이브 베이지언, Decision Tree, ... 
+## LECUN교수, 기존의 BackPropagation 보다 다른 알고리즘이 우수하다는 것을 증명하고, perceptron이 또 망함 
+## 다시 침체기..(흥망성쇠를 거듭)
+
+## 캐나다가 국책 연구기관을 설립 (Canadian Institute For Advanced Research (CIFAR) 발음이..)
+## 국책이기에 현재 돈이 안되더라도 기반기술 개발을 위해 사람들을 끌어모음 <- 거기에 Hinton 교수도 참여 
+## 1987년 Hinton교수가 캐나다로 건너가서 AI 연구를 지속 
+## 그리하여 2006, 2007년도에 Hinton교수의 연구진들이 2개의 논문을 발표(망한 이유를 찾았어!)
+## -> 망한이유 : BackPropagation이 안된 이유를 찾아서 수학적으로 증명 
+## -> w,b의 초기값을 random으로 주면 안돼(이거 초기값을 잘 주면 학습을 잘 할 수 있어)
+## -> 2007년, 초기값에 대한 증명에 대한 논문 추가 제출, layer를 더 많이 사용할 수록 복잡한 문제를 해결할 수 있다고 발표
+
+## 문제는 사람들이 반응이 차디참!!(두번 속냐)
+## 신분세탁... 브랜드 라벨을 바꾸어보자 -> '딥 러닝(deeplearning)' 으로 (새로운 기법인 것처럼)
+## 사실 AI, neural network에 대한 연구는 컴퓨터에 대한 역사와 상응할 만큼 상대적으로 김 
+
+##############################
+
+## 여러개의 perceptron으로 neural network를 연결해서, 기존에 학습이 안 되던 것을 학습해보자 
+
+
+
+
+## XOR연산을 다시 시행해보자! 
+
+import tensorflow as tf
+
+
+# XOR 연산 진리표
+x_data = [[0,0],
+          [0,1],
+          [1,0],
+          [1,1]]
+
+
+y_data = [[0],
+          [1],
+          [1],
+          [0]]
+		  
+# tensorflow로 machine learning 이어서
+# placeholder
+X = tf.placeholder(shape=[None,2], dtype=tf.float32)
+Y = tf.placeholder(shape=[None,1], dtype=tf.float32)
+
+# Weight & bias
+W1 = tf.Variable(tf.random_normal([2,20]), name="weight1") #내보낼 logistic의 개수 증대(앞에건 설정한 placeholder대로)
+b1 = tf.Variable(tf.random_normal([20]), name="bias1")
+layer1 = tf.sigmoid(tf.matmul(X,W1) + b1)
+
+W2 = tf.Variable(tf.random_normal([20,1]), name="weight2")
+b2 = tf.Variable(tf.random_normal([1]), name="bias2")
+
+# Hypothesis
+logit = tf.matmul(layer1,W2) + b2
+H = tf.sigmoid(logit)
+
+# Cost(Loss) function 
+cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logit, labels=Y))
+
+#train
+optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.01)
+train = optimizer.minimize(cost)
+
+# session, 초기화
+sess = tf.Session()
+sess.run(tf.global_variables_initializer())
+
+# 학습 
+for step in range(30000):
+    _, cost_val = sess.run([train, cost], feed_dict={ X : x_data, 
+                                                      Y : y_data})
+    if step % 3000 == 0:
+        print("Cost값은 : {}".format(cost_val))
+        
+#예측
+predict = tf.cast(H>0.5, dtype = tf.float32)
+sess.run(predict, feed_dict={X :[[0,1]]}) #[0,1],[1,0],[1,1]
+
+## layer를 하나 더 늘여보자  
+import tensorflow as tf
+
+x_data = [[0,0],
+          [0,1],
+          [1,0],
+          [1,1]]
+y_data = [[0],
+          [1],
+          [1],
+          [0]]
+
+# placeholder
+X = tf.placeholder(shape=[None,2], dtype=tf.float32)
+Y = tf.placeholder(shape=[None,1], dtype=tf.float32)
+
+# Weight, bias
+W1 = tf.Variable(tf.random_normal([2,10]), name="weight1")
+# W1 = tf.Variable(tf.random_normal([2,logistic에 들어갈 x 갯수]), name="weight1")
+b1 = tf.Variable(tf.random_normal([10]), name="bias")
+# b1 = tf.Variable(tf.random_normal([logistic에 들어갈 x 갯수]]), name="bias")
+layer1 = tf.sigmoid(tf.matmul(X,W1) + b1)
+
+W2 = tf.Variable(tf.random_normal([10,256]), name="weight2")
+# W2 = tf.Variable(tf.random_normal([logistic에 들어갈 x 갯수,1]), name="weight2")
+b2 = tf.Variable(tf.random_normal([256]), name="bias2")
+layer2 = tf.sigmoid(tf.matmul(layer1,W2) + b2)
+
+W3 = tf.Variable(tf.random_normal([256,1]), name="weight3")
+b3 = tf.Variable(tf.random_normal([1]), name="bias3")
+
+# Hypothesis
+logit = tf.matmul(layer2,W3) + b3
+H = tf.sigmoid(logit)
+
+# Cost
+cost = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=logit,
+                                                              labels=Y))
+
+# train
+optimizer = tf.train.GradientDescentOptimizer(learning_rate = 0.1)
+train = optimizer.minimize(cost)
+
+# session, 초기화
+sess= tf.Session()
+sess.run(tf.global_variables_initializer())
+
+# nodes
+for step in range(3000): #  코스트값을 3000번 줄이겠다 는 뜻
+    _, cost_val=sess.run([train, cost], feed_dict = {X : x_data,
+                                                     Y : y_data} ) # 먹이를 줘야지 그데이터가지고 학습해 
+    if step % 300 == 0:
+        print("Cost값은 : {}".format(cost_val))
+  
+#예측
+predict = tf.cast(H>0.5, dtype = tf.float32)
+sess.run(predict, feed_dict={X :[[1,1]]}) #[0,1],[1,0],[1,1]  
