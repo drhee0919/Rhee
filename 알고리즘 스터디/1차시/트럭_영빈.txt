@@ -1,0 +1,12 @@
+def solution(bridge_length, weight, truck_weights):
+    s = [0 for i in range(bridge_length)]
+    ans = 0
+    while s:
+        ans += 1
+        s.pop(0)
+        if truck_weights:
+            if (sum(s)+truck_weights[0]) = weight:
+                s.append(truck_weights.pop(0))
+            else:
+                s.append(0)
+    return ans
