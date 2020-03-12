@@ -214,3 +214,19 @@ plt.close()
 
 ```
 
+``` python
+#참고 코드 :
+sns.pairplot(df[[ 'cylinders', 'horsepower', 'weight', 'acceleration', 'displacement']]) 
+
+# 다중 공선성 확인 : variance_inflation_factor()
+from patsy import dmatrices
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+y, X = dmatrices('mpg ~ cylinders + horsepower + weight + acceleration + displacement', df, return_type='dataframe')
+vif = pd.DataFrame()
+vif['VIF Factor'] = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+vif["features"] = X.columns
+vif
+```
+
+[https://bkshin.tistory.com/entry/DATA-20-%EB%8B%A4%EC%A4%91%EA%B3%B5%EC%84%A0%EC%84%B1%EA%B3%BC-VIF](https://bkshin.tistory.com/entry/DATA-20-다중공선성과-VIF)
