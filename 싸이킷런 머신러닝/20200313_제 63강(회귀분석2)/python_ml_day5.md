@@ -9,7 +9,7 @@ KNN, SVM, Decision Tree, Logistic Regression등
 Logistic Regression는 종속변수(Y), 독립변수(X)간의 관계를 나타내는 예측모델이면서 목표 변수가 카테고리 값(범주형)을 갖는 경우에는 분류 분석에 해당된다
 ```
 
-**로지스틱 회귀분석**
+>  **로지스틱 회귀분석**
 
 ```python
 #statsmodel 패키지의 로지스틱 회귀 분류 분석
@@ -175,7 +175,7 @@ print("F1 : %.3f" % f1_score(valid_y, pred_y))
 
 
 
-**Decision Tree**
+> **Decision Tree**
 
 ```python
 from sklearn.tree import DecisionTreeClassifier
