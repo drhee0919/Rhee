@@ -301,6 +301,43 @@ dfX.tail()
 #test, train data 분리 (0.25)
 #decisiontree 분류 분석
 #시각화
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+import io
+import pydot 
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import datasets
+from IPython.display import Image
+from sklearn import tree 
+
+X_train, X_test, y_train, y_test = train_test_split(dfX, dfy, test_size=0.25, random_state=0)
+
+#분류분석 
+model = DecisionTreeClassifier(criterion='entropy', 
+                               max_depth=3, 
+                               min_samples_leaf=5).fit(X_train, y_train)
+
+#시각화
+command_buf = io.StringIO() #문자열 입출력 관하여 선언 (메모리 처리속도상)
+tree.export_graphviz(model, out_file=command_buf, feature_names=[
+                'Age', 'Sex', '1st_class', '2nd_class', '3rd_class'])
+#graph = pydot.graph_from_dot_data(command_buf.getvalue())[0]
+graph = pydotplus.graph_from_dot_data(command_buf.getvalue())
+image = graph.create_png()
+Image(image)
+```
+
+```python
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import classification_report
+
+confusion_matrix(y_train, model.predict(X_train))
+
+confusion_matrix(y_test, model.predict(X_test))
+
+print(classification_report(y_train, model.predict(X_train)))
+
+print(classification_report(y_test, model.predict(X_test)))
 
 ```
 
