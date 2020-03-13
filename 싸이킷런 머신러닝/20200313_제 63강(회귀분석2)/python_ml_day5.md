@@ -173,3 +173,134 @@ print("Recall : %.3f" % recall_score(valid_y, pred_y))
 print("F1 : %.3f" % f1_score(valid_y, pred_y))
 ```
 
+
+
+**Decision Tree**
+
+```python
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import datasets
+
+iris = datasets.load_iris()  # 데이터 로드
+features = iris.data
+target = iris.target
+# 결정 트리 분류기 객체 생성 (불순도를 감소를 지표의 기본값을  지니 계수를 사용)
+decisiontree = DecisionTreeClassifier(random_state=0)
+model = decisiontree.fit(features, target)  # 모델 훈련
+
+observation = [[ 5,  4,  3,  2]]  # New 샘플 데이터
+model.predict(observation)  # 샘플 데이터의 클래스 예측
+model.predict_proba(observation)  # 세 개의 클래스에 대한 예측 확률을 확인
+
+# 엔트로피를 사용해 결정 트리 분류기를 훈련합니다.
+decisiontree_entropy = DecisionTreeClassifier( criterion='entropy', random_state=0)
+model_entropy = decisiontree_entropy.fit(features, target)   # 모델 훈련
+
+observation = [[ 5,  4,  3,  2]]  # New 샘플 데이터
+model_entropy .predict(observation)            # 샘플 데이터의 클래스 예측
+model_entropy .predict_proba(observation)   # 세 개의 클래스에 대한 예측 확률을 확인
+```
+
+```python
+#DecisionTree는 분류와 회귀 분석에 모두 사용 가능
+from sklearn.tree import DecisionTreeRegressor
+from sklearn import datasets
+
+boston = datasets.load_boston()   # 데이터 로드
+features = boston.data[:,0:2]   #두 개의 특성만 선택
+target = boston.target
+
+decisiontree = DecisionTreeRegressor(random_state=0)  # 결정 트리 회귀 모델 객체 생성
+model = decisiontree.fit(features, target)   # 모델 훈련
+
+observation = [[0.02, 16]]   #New 샘플 데이터
+model.predict(observation)   # 샘플 데이터의 타깃을 예측
+
+# 평균 제곱 오차를 사용한 (평균 절댓값 오차MAE가 감소되는) 결정 트리 회귀 모델 객체 생성
+decisiontree_mae = DecisionTreeRegressor(criterion="mae", random_state=0)
+model_mae = decisiontree_mae.fit(features, target)   # 모델 훈련
+model_mae.predict(observation)   # 샘플 데이터의 타깃을 예측
+```
+
+```python
+'''
+결정 트리 모델 시각화
+ 결정 트리 분류기의 장점은 훈련된 전체 모델을 시각화할 수 있다는 것이다.
+ 훈련된 모델을 DOT 포맷으로 변환한 다음 그래프를 그립니다.
+'''
+import pydotplus
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import datasets
+from IPython.display import Image
+from sklearn import tree
+
+iris = datasets.load_iris() # 데이터 로드
+features = iris.data
+target = iris.target
+
+decisiontree = DecisionTreeClassifier(random_state=0) # 결정 트리 분류기를 만듭니다.
+model = decisiontree.fit(features, target) # 모델 훈련
+
+# DOT 데이터를 만듭니다
+dot_data = tree.export_graphviz(decisiontree,
+                                out_file=None,
+                                feature_names=iris.feature_names,
+                                class_names=iris.target_names) 
+
+graph = pydotplus.graph_from_dot_data(dot_data) # 그래프를 그립니다.
+Image(graph.create_png()) # 그래프 출력
+# graph.write_pdf("iris.pdf") # PDF를 만듭니다.
+# graph.write_png("iris.png") # PNG 파일을 만듭니다
+```
+
+※ pydotplus 클래스 graphviz 사용법 
+
+```
+pip install pyparsing
+pip install graphviz
+pip install pydot
+conda install graphviz
+
+
+1. graphviz.2.38.msi 파일 설치
+https://graphviz.gitlab.io/_pages/Download/Download_windows.html
+
+2. 시스템 환경변수에 추가하기
+시스템환경변수 > path 추가
+C:\Program Files (x86)\Graphviz2.38\bin 
+
+시스템환경변수 > GRAPHVIZ_DOT 새로만들기
+C:\Program Files (x86)\Graphviz2.38\bin\dot.exe 
+
+3. jupyter notebook 재시작
+```
+
+```python
+##############타이타닉 데이터 생존자 분류 분석 (decision tree) 
+##############타이타닉 데이터 생존자 분류 분석 (decision tree) ###########
+df = sns.load_dataset("titanic")
+df.head()
+feature_names = ["pclass", "age", "sex"]
+dfX = df[feature_names ].copy()
+dfy = df["survived"].copy()
+dfX.tail()
+
+from sklearn.preprocessing import LabelEncoder
+dfX["sex"] = LabelEncoder().fit_transform(dfX["sex"])
+dfX.tail()
+
+dfX["age"].fillna(dfX["age"].mean(), inplace=True)
+dfX.tail()
+
+from sklearn.preprocessing import LabelBinarizer
+dfX2 = pd.DataFrame(LabelBinarizer().fit_transform(dfX["pclass"]), columns=['c1', 'c2', 'c3'], index=dfX.index)
+dfX = pd.concat([dfX, dfX2], axis=1)
+del(dfX['pclass'])
+dfX.tail()
+
+#test, train data 분리 (0.25)
+#decisiontree 분류 분석
+#시각화
+
+```
+
