@@ -322,7 +322,33 @@
 > plt.xlabel("feature 0")
 > plt.xlabel("feature 1")
 > 
-> 
-> 
 > ```
+>
+> - KNN으로 titanic 데이터 분류 분석 수행을 SVM으로 분류 분석 수행하고
+>   평가 지표 비교
+>
+> ```python
+> # 전처리 절차 생략
+> # 학습시작
+> svm_model = SVC(kernel='rbf') #모형 객체 생성 
+> svm_model.fit(X_train, y_train)
+> y_hat = svm_model.predict(X_test)
+> 
+> print(y_hat[0:10])
+> print(y_test.values[0:10])
+> print("\n")
+> 
+> from sklearn import metrics 
+> svm_matrix = metrics.confusion_matrix(y_test, y_hat)
+> 
+> #모형 성능 평가 - Confusion Matirx 계산 
+> print(svm_matrix)
+> print('\n')
+> 
+> #모형 성능 평가 - 평가 지표 계산 
+> svm_report = metrics.classification_report(y_test, y_hat)
+> print(svm_report)
+> ```
+>
+> https://datascienceschool.net/view-notebook/731e0d2ef52c41c686ba53dcaf346f32/
 
