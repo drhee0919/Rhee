@@ -221,5 +221,108 @@
 >
 > 선형 모델을 유연하게 만드는 방법 중 하나인  특성끼리 곱하거나 특성을 거듭제곱하는 식으로 새로운 특성을 추가하여 단순한 초평면으로 정의되지 않는 더 복잡한 모델을 만들수 있도록 확장한 것
 >
+> (하단 코드는 실습으로 옮긴 뒤 그림으로 확인할 것)
+>
+> ```python
+> #선형적으로 분류되지 않는 클래스를 가진 이진 데이터셋
+> from sklearn.datasets import make_blobs
+> X, y = make_blobs(centers=4, random_state=8)
+> y=y%2
+> mglearn.discrete_scatter(X[:,0], X[:,1], y)
+> plt.xlabel('feature 0')
+> plt.ylabel('feature 1')
 > 
+> 
+> from sklearn.svm import LinearSVC
+> linear_svm = LinearSVC().fit(X, y)
+> 
+> mglearn.plots.plot_2d_separator(linear_svm, X)
+> mglearn.discrete_scatter(X[:,0], X[:,1], y)
+> plt.xlabel('feature 0')
+> plt.ylabel('feature 1')
+> #분류를 위한 선형 모델은 직선으로만 데이터 포인트를 나누므로 올바르게 분류하지 못함
+> ```
+>
+> ```python
+> #두번째 특성을 제곱한 특성으로 새로운 특성을 추가해서 입력 특성을 확장
+> import numpy as np
+> from mpl_toolkits.mplot3d import Axes3D     
+> 
+> #conda install basemap ,  pip install -U matplotlib
+> X_new = np.hstack([X, X[:, 1:] ** 2])
+> from mpl_toolkits.mplot3d import Axes3D, axes3d
+> figure = plt.figure()
+> # 3차원 그래프
+> ax = Axes3D(figure, elev=-152, azim=-26)
+> # y == 0인 포인트를 먼저 그리고 그다음 y == 1인 포인트를 그립니다.
+> mask = y == 0
+> ax.scatter(X_new[mask, 0], X_new[mask, 1], X_new[mask, 2], c='b',
+>            cmap=mglearn.cm2, s=60, edgecolor='k')
+> ax.scatter(X_new[~mask, 0], X_new[~mask, 1], X_new[~mask, 2], c='r', marker='^',
+>            cmap=mglearn.cm2, s=60, edgecolor='k')
+> ax.set_xlabel("feature 0")
+> ax.set_ylabel("feature1")
+> ax.set_zlabel("feature1 ** 2")
+> ```
+>
+> ```python
+> #선형 모델과 3차원 공간의 평면을 사용해 두 클래스를 분류
+> linear_svm_3d = LinearSVC().fit(X_new, y)
+> coef, intercept = linear_svm_3d.coef_.ravel(), linear_svm_3d.intercept_
+> 
+> figure = plt.figure()
+> ax = Axes3D(figure, elev=-152, azim=-26)
+> xx = np.linspace(X_new[:, 0].min() - 2, X_new[:, 0].max() + 2, 50)
+> yy = np.linspace(X_new[:, 1].min() - 2, X_new[:, 1].max() + 2, 50)
+> 
+> XX, YY = np.meshgrid(xx, yy)
+> ZZ = (coef[0] * XX + coef[1] * YY + intercept) / -coef[2]
+> ax.plot_surface(XX, YY, ZZ, rstride=8, cstride=8, alpha=0.3)
+> ax.scatter(X_new[mask, 0], X_new[mask, 1], X_new[mask, 2], c='b',
+>            cmap=mglearn.cm2, s=60, edgecolor='k')
+> ax.scatter(X_new[~mask, 0], X_new[~mask, 1], X_new[~mask, 2], c='r', marker='^',
+>            cmap=mglearn.cm2, s=60, edgecolor='k')
+> 
+> ax.set_xlabel("feature 0")
+> ax.set_ylabel("feature 1")
+> ax.set_zlabel("feature 1 ** 2")
+> ```
+>
+> ```python
+> #선형SVM 모델은 직선이 아닌 타원에 가까운 분류 경계를 찾아줌
+> ZZ = YY ** 2
+> dec = linear_svm_3d.decision_function(np.c_[XX.ravel(), YY.ravel(), ZZ.ravel()])
+> plt.contourf(XX, YY, dec.reshape(XX.shape), levels=[dec.min(), 0, dec.max()],
+>              cmap=mglearn.cm2, alpha=0.5)
+> mglearn.discrete_scatter(X[:, 0], X[:, 1], y)
+> plt.xlabel("feature 0")
+> plt.ylabel("feature 1")
+> ```
+>
+> - 데이터셋에 비선형 특성을 추가하여 더 강력한 선형 모델을 만들 수 있습니다.
+> - 커널 기법(실제로 데이터를 확장하지 않고 확장된 특성에 대한 데이터 포인터들의 거리를 계산)을 이용해서 새로운 특성을 많이 만들지 않고도 분류기를 학습시킬 수 있습니다.
+> - 데이터를 고차원 공간에 매핑하는 데 사용하는 방법 
+>   1. 다항식 커널 : 원래 특성의 가능한 조합을 지정된 차수까지 모두 계산 (예: 특성1**2+ 특성**5) 
+>   2. 가우시안 커널  : 차원이 무한한 특성 공간에 매핑되도록 계산, 모든 차수의 모든 다항식을 고려한다
+> - 새로운 데이터에 대한 예측은  각 서포트 벡터와의 거리를 측정합니다
+>
+> ```python
+> # 두 개의 클래스를 가진 2차원 데이터셋에 SVM으로 학습
+> from sklearn.svm import SVC
+> X, y = mglearn.tools.make_handcrafted_dataset()
+> svm = SVC(kernel='rbf', C=10, gamma=0.1).fit(X, y)   
+> #gamma는 가우시안 커널의 폭을 제어하는 매개변수
+> mglearn.plots.plot_2d_separator(svm, X, eps=.5)
+> mglearn.discrete_scatter(X[:,0], X[:, 1], y)
+> 
+> sv = svm.support_vectors_  #서포트 벡트들
+> sv_labels = svm.dual_coef_.ravel() > 0   
+> # dual_coef_의 부호에 의해 서포트 벡터의 클래스 레이블이 결정됩니다.
+> mglearn.discrete_scatter(sv[:,0], sv[:, 1], sv_labels, s=15, markeredgewidth=3)
+> plt.xlabel("feature 0")
+> plt.xlabel("feature 1")
+> 
+> 
+> 
+> ```
 
