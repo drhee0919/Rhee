@@ -649,6 +649,13 @@
 > print("동심원 군집 AMI:", adjusted_mutual_info_score(y1, y_pred1))
 > print("초승달 군집 ARI:", adjusted_rand_score(y2, y_pred2))
 > print("초승달 군집 AMI:", adjusted_mutual_info_score(y2, y_pred2))
+> 
+> '''결과 
+> 동심원 군집 ARI: 0.9414262371038592
+> 동심원 군집 AMI: 0.8967648464619999
+> 초승달 군집 ARI: 0.9544844153926417
+> 초승달 군집 AMI: 0.9151495815452475
+> '''
 > ```
 >
 > - 계층적 군집화
