@@ -16,6 +16,8 @@
 >
 >   조건부 독립 확률과 무조건 독립 확률간의 관계가 없다.(가령, 두 확률변수가 독립이라고 해서 항상 조건부 독립 확률이 되는 것은 아니며, 조건부 독립 확률이라고 해서 확률 변수가 항상 독립이 되는 것도 아니다.) 
 >
+>   https://datascienceschool.net/view-notebook/c19b48e3c7b048668f2bb0a113bd25f7/
+>
 >   ```python
 >   import numpy as np 
 >   C = np.random.normal(100, 15, 2000)
