@@ -1,0 +1,113 @@
+-- Q. 부서별 급여의 내림차순으로 순위를 출력 
+select ename, deptno, sal, 
+       rank() over (partition by deptno order by sal desc) sal_rank
+from emp;
+-- 급여가 동일할 때 순위는 동일하고 다음 순위는 동일한 순위의 rows만큼 count된 이후 순위 
+
+select ename, deptno, sal, 
+       dense_rank() over (partition by deptno order by sal desc) sal_rank
+from emp;
+-- 급여가 동일할때 순위는 동일하고 다음 순위는 동일한 순위의 row만큼 1개의 순위로 처리 되고 이후 순위는 순차적으로 증가됨 
+
+
+-- Q. 결과 row에 자동으로 1,2,3 순번을 발행해주는 내장 컬럼 
+select rownum, ename, sal 
+from emp;
+
+select rownum, ename, sal
+from emp
+order by sal desc; --rownum이 먼저 발행되고, order by 절이 처리됨 
+
+
+-- Q. 급여를 많이 받는 5명만 결과로 출력 
+select rownum, ename, sal
+from (select ename, sal
+      from emp 
+      order by sal desc) -- subquery, inline view 
+where rownum < 6 ;
+
+
+
+-- Q. 부서별 동일한 급여를 받는 사원의 순위를 다르게(차등있게) 출력 --rowid기준 
+-- row_number() : order by 절에 추가 정렬조건이 없으면 rowid값에 따라 차등적 순위반환
+select ename, deptno, sal, 
+       row_number() over(partition by deptno order by sal desc) sal_rank
+from emp;
+      
+ 
+
+-- Q. 부서별 사원의 급여 옆에 누적된 급여 합계를 함께 출력 
+select ename, deptno, sal, 
+       sum(sal) over(partition by deptno order by sal desc range unbounded preceding) cum_sal
+from emp;
+
+
+-- Q. 부서별 사원의 급여 옆에 부서의 최대 급여 함께 출력 
+select ename, deptno, sal, 
+       max(sal) over(partition by deptno order by sal desc range unbounded preceding) max_dep_sal
+from emp;       
+
+-- Q. 부서별 사원의 급여 옆에 부서의 최대 급여를 받는 인원의 이름 함께 출력 
+select ename, deptno, sal,
+       first_value(ename) over (partition by deptno order by sal desc range unbounded preceding) max_sal_emp
+from emp;
+
+
+-- Q. 부서별 사원의 급여 옆에 부서의 최소 급여 함께 출력 
+select ename, deptno, sal, 
+       min(sal) over(partition by deptno order by sal desc range unbounded preceding) min_dep_sal
+from emp;   
+
+
+-- Q. 부서별 사원의 급여 옆에 부서의 최소 급여를 받는 인원의 이름 함께 출력 
+select ename, deptno, sal,
+       last_value(ename) over (partition by deptno order by sal desc range unbounded preceding) min_sal_emp
+from emp;      
+
+-- Q. 부서별 사원의 급여 옆에 사원보다 급여를 더 많이 받는 1명의 사원과 급여를 더 적게 받는 1명의 급여의 평균 함께 출력 
+select ename, deptno, sal, 
+       avg(sal) over (partition by deptno order by sal desc rows between 1 preceding and 1 following) "3rows_avg_sal"
+from emp;
+
+select ename, deptno, sal, 
+       round(avg(sal) over (partition by deptno order by sal desc rows between 1 preceding and 1 following)) "3rows_avg_sal"
+from emp;
+
+-- Q. 부서별 사원의 급여 옆에 -200~ +200급여를 받는 사원수를 함께 출력 
+select ename, deptno, sal, 
+       count(sal) over (partition by deptno order by sal desc range between 200 preceding and 200 following) "+200~-200"
+from emp;
+
+
+ -- lag(column, n, null|n)
+ -- lead(column, n, null|n))
+ -- Q. 모든 사원의 급여의 내림차순으로 출력하고, 옆에 자신보다 급여를 많이 받는 사원의 급여와 자신보다 급여를 적게 받는 
+ --    사원의 급여를 함께 출력 
+ select ename, deptno, sal, 
+        lag(sal, 1, -1) over (order by sal desc) before, 
+        lead(sal) over (order by sal desc) after 
+from emp;
+
+-- nth_value(column, 순위) : 순위에 해당하는 컬럼값 반환 
+select ename, deptno, sal, 
+       nth_value(sal, 2) over (order by sal desc) before, 
+       nth_value(sal, 2) over (order by sal) after 
+from emp;
+
+
+-- 비율 관련 함수 
+-- ratio_to_report(컬럼) : 파티션 내에 컬럼의 sum값에 대해 행의 컬럼값의 백분율을 반환 (0< ~ <=1 범위) 
+select ename, deptno, sal, 
+       round(ratio_to_report(sal) over (partition by deptno), 2) as ratio 
+from emp;
+
+
+-- percent_rank() : 파티션 내에 행의 순서별 백분율, 제일 먼저 출력되는 행의 순서 백분율을 0, 파티션내에 마지막 출력되는 행의 백분율은 1 
+select ename, deptno, sal 
+       percent_rank( ) over(partition by deptno order by sal desc) as percent 
+from emp;
+
+
+-- ntile():전체 행을 n등분한 결과 반환, 파티션별 행들을 n등분한 결과 반환 
+select ename, sal, ntile(4) over (order by sal desc) "4tile"
+from emp;
