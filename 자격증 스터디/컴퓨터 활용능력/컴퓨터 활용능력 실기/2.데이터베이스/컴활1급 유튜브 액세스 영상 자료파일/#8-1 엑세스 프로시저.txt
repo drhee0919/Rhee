@@ -1,0 +1,54 @@
+<08_엑세스 프로시저 정리>
+VBA를 이용해 각종 컨트롤에게 명령을 부여하여 실행하는 기능을 알아보자 
+- 해당 조건에 만족하는 데이터를 보여주고 나머진 숨겨준다. 
+- 특정 컨트롤 선택 - 이벤트 탭 - 이벤트 조건을 선택하여 ... 클릭 후 '코드 작성기' 선택 - VBA사용 
+
+- 조회 프로시저의 종류 
+1. Filter, FilterOn
+ Me.Filter = "조건식"
+ Me.Filter.On = True 
+ 
+ex/ 
+Private Sub cmd찾기_Click()
+
+'현재 열려있는 폼에 명령을 하달하겠다'
+Me.Filter = "강좌명='" & txt찾기 & "'"
+Me.FilterOn = True '필터의 기능을 활성화하겠다'
+
+    
+End Sub
+
+ 
+2. Recordset Clone, FindFirst, Bookmark 
+Me.RecordsetClone.FindFirst "조건식"
+Me.Bookmark = Me.RecordsetClone.Bookmark
+(* 해당 조건에 만족하는 데이터를 찾아 준다)
+
+ex/ 
+Private Sub cmd찾기_Click()
+
+Me.RecordsetClone.findfirst "강좌명='" & txt찾기 & "'"
+Me.Bookmark = Me.RecordsetClone.Bookmark
+
+     
+End Sub
+
+
+
+
+3. RecordSource
+Me.RecordSource = "Select * From 개체명 Where 조건식"
+(* 해당 조건을 만족하는 데이터만 레코드 원본으로 테이블에서 가져온다.)
+
+ex/
+Private Sub cmd찾기_Click()
+
+Me.RecordSource = "Select * From 강좌 Where 강좌명='" & txt찾기 & "'"
+     
+End Sub 
+
+- 프로시저 4단계 작성법 
+1) "필드=컨트롤" 대상값 필드값 제시값 컨트롤을 찾아라 
+2) "필드='컨트롤'" 컨트롤엔 문자가 있어.. (충돌방지)
+3) "필드='"컨트롤"'" 컨트롤을 빼내야 해!! (인식실패)
+4) "필드='" & 컨트롤 & "'" 끊었으면 붙여야지!!  
