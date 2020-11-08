@@ -27,7 +27,8 @@
 > > CREATE SCHEMA 대학교 AUTHORIZATION 홍길동; 
 > > ```
 > >
-> > 
+>
+> - CREATE DOMAIN
 
 **SQL-DML**
 
