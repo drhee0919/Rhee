@@ -313,7 +313,7 @@
 >
 > * DCL에는 GRANT, REVOKE, COMMIT, ROLLBACK, SAVEPOINT 등이 있다. 
 >
->   
+>   ※ COMMIT, ROLLBACK, SAVEPOINT 들은 TCL(Transaction Control Language)로 분류하기도 한다. 
 >
 > * GRANT / REVOKE
 >
@@ -347,11 +347,49 @@
 > > > * GRANT OPTION FOR : 다른 사용자에게 권한을 부여할 수 있는 권한을 취소함. 
 > > > * CASCADE : 권한 취소 시 권한을 부여받았던 사용자가 다른 사용자에게 부여한 권한을 연쇄적으로 취소함 
 >
-> ```
+> ```plsql
+> GRANT 권한_리스트 ON 개체 TO 사용자 [WITH GRANT OPTION];
+> REVOKE [GRANT OPTION FOR] 권한_리스트 ON 개체 FROM 사용자[CASCADE];
 > 
+> /* 사용자 ID가 "NABI" 인 사람에게 <고객> 테이블에 대한 모든 권한과 다른 사람에게 권한을 부여할 수 있는 권한까지 부여하는 SQL문을 작성하시오. */
+> GRANT ALL ON 고객 TO NABI WITH GRANT OPTION;
+> 
+> /* 사용자 ID가 "STAR"인 사람에게 부여한 <고객> 테이블에 대한 권한 중 UPDATE 권한을 다른 사람에게 부여할 수 있는 권한만 취소하는 SQL문을 작성하시오. */
+> REVOKE GRANT OPTION FOR UPDATE ON 고객 FROM STAR;
 > ```
 >
 > 
+>
+> - COMMIT
+>
+> > 트랜잭션이 성공적으로 끝나면 데이터베이스가 새로운 일관성(Consistency)상태를 가지기 위해 변경된 모든 내용을 데이터 베이스에 반영하는데, 이때 반영시키기 위한 명령이 COMMIT이다. 
+> >
+> > * COMMIT 명령을 완료하지 않아도 <u>DML문이 성공적으로 완료되면 자동으로 COMMIT</u>되고, DML이 실패하면 자동으로  ROLLBACK이 되도록 Auto Commit 기능을 설정할 수 있다. 
+>
+> ```plsql
+> /* <사원 테이블에서 '사원번호'가 40인 사원의 정보를 삭제한 후 COMMIT을 수행하시오 */
+> DELETE * FROM 사원 WHERE 사원번호 = 40;
+> COMMIT;
+> ```
+>
+> 
+>
+> - ROLLBACK
+>
+> > 아직 COMMIT되지 않은 변경된 모든 내용들을 취소하고 데이터베이스를 이전 상태로 되돌리는 명령어이다. 
+> >
+> > * 트랜잭션 전체가 성공적으로 끝나지 못하면 일부 변경된 내용만 데이터베이스에 반영되는 비일관성(Inconsistency)인 상태를 가질 수 있기 떄문에 일부분만 완료된 트랜잭션은 롤백(Rollback)되어야 한다. 
+>
+> - SAVEPOINT
+>
+> > 트랜잭션 내에 ROLLBACK할 위치인 저장점을 지정하는 명령어 
+> >
+> > * 저장점을 지정할 때는 이름을 부여하며, ROLLBACK 시 지정된 저장점까지의 트랜잭션 처리 내용이 취소된다. 
+>
+> ```plsql
+> /* SAVEPOINT 'S2'까지 ROLLBACK을 수행하시오. */
+> ROLLBACK TO S2;
+> ```
 >
 > 
 
