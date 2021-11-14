@@ -149,6 +149,10 @@
 >
 > **6.3 의사결정 지원시스템의 이해**
 >
+> > * 전사 데이터 웨어하우스(EDW; Enerprise Data Warehouse
+> > * 의사결정지원시스템(DSS; Decision Support System)
+> > * 비즈니스 인텔리전스(BI)
+>
 > **6.4 IT 서비스 관리의 이해**
 >
 > > 
