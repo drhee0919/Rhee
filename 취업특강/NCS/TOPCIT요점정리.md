@@ -157,6 +157,12 @@
 >
 > > - 도입 프로세스 
 > > - 아웃소싱의 형태 
+> >
+> > > * Total Outsourcing
+> > > * Selective Outsourcing
+> > > * IT자회사 Outsourcing
+> > > * Co-Outsourcing
+> >
 > > - 아웃소싱 도입에 따른 고려사항 
 > > - eSCM(eSourcing Capability Model)
 
