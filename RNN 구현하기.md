@@ -23,7 +23,7 @@ model.add(SimpleRNN(hidden_size, input_length=M, input_dim=N))
 > * timesteps = 입력 시퀀스의 길이(input_length)라고 표현하기도 함. 시점의 수.
 > * input_dim = 입력의 크기.
 
-- batch 사이즈를 미정한 경우 예시 
+- batch 사이즈를 미정한 경우(예시) 
 
 ```python
 from keras.models import Sequential
