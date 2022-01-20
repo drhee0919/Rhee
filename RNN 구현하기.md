@@ -130,4 +130,5 @@ for input_t in input_length:  # 각 시점마다 입력을 받는다.
 > *  입력 데이터의 길이는 곧 총 시점의 수(timesteps)가 됨. 
 > *  t 시점의 입력값을 input_t로 선언. 
 > * 각 메모리 셀은 각 시점마다 <u>input_t와 hidden_sate_t(이전 상태의 은닉 상태)를 입력</u>으로 활성화 함수인 **하이퍼볼릭탄젠트 함수**를 통해 현 시점의 hidden_state_t를 계산합니다.
+> * 
 
