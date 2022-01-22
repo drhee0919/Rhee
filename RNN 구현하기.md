@@ -118,10 +118,10 @@ _________________________________________________________________
 ``` pseudocode
 # 아래의 코드는 의사 코드(pseudocode)로 실제 동작하는 코드가 아님. 
 
-hidden_state_t = 0 # 초기 은닉 상태를 0(벡터)로 초기화
+hidden_state_t = 0 # 초기 은닉 상태를 0(벡터)로 초기화.
 for input_t in input_length:  # 각 시점마다 입력을 받는다.
     output_t = tanh(input_t, hidden_state_t) 
-    					    # 각 시점에 대해서 입력과 은닉 상태를 가지고 연산
+    					    # 각 시점에 대해서 입력과 은닉 상태를 가지고 연산.
     hidden_state_t = output_t # 계산 결과는 현재 시점의 은닉 상태가 된다.
 ```
 
