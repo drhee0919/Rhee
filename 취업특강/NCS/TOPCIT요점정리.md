@@ -86,6 +86,13 @@
 > > > * 목표(Goals)
 > > > * 목적(Objectives)
 > > > * 기본 이념(Principles)
+> > > * 조력자(Enablers)
+> > > * 방해자(Barriers)
+> > > * 전략(Strategy)
+> > > * 전략계획(Strategic Plan)
+> > > * 사업과제(Initiatives)
+> > > * 활동(Actions)
+> > > * 성과지표(Performance Index)
 > >
 > > - 전략 프로세스
 > > - IT 비즈니스 전략 
